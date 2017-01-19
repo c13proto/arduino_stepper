@@ -13,15 +13,15 @@ int PAD_x;int PAD_0; int PAD_s;int PAD_D;
 
 void KeypadClass::init()
 {
-	pinMode(29, INPUT_PULLUP);
-	pinMode(28, INPUT_PULLUP);
-	pinMode(27, INPUT_PULLUP);
-	pinMode(26, INPUT_PULLUP);
+	pinMode(29, INPUT_PULLUP);//PA7
+	pinMode(28, INPUT_PULLUP);//PA6
+	pinMode(27, INPUT_PULLUP);//PA5
+	pinMode(26, INPUT_PULLUP);//PA4
 
-	pinMode(25, OUTPUT);
-	pinMode(24, OUTPUT);
-	pinMode(23, OUTPUT);
-	pinMode(22, OUTPUT);
+	pinMode(25, OUTPUT);//PA3
+	pinMode(24, OUTPUT);//PA2
+	pinMode(23, OUTPUT);//PA1
+	pinMode(22, OUTPUT);//PA0
 }
 
 void KeypadClass::get_status()
@@ -32,41 +32,49 @@ void KeypadClass::get_status()
 	bool pad_7; bool pad_8; bool pad_9; bool pad_C;
 	bool pad_x; bool pad_0; bool pad_s; bool pad_D;
 
-	digitalWrite(25, LOW);
-	digitalWrite(24, HIGH);
-	digitalWrite(23, HIGH);
-	digitalWrite(22, HIGH);
-	if (digitalRead(29) == 0)pad_1 = 1; else pad_1 = 0;
-	if (digitalRead(28) == 0)pad_4 = 1; else pad_4 = 0;
-	if (digitalRead(27) == 0)pad_7 = 1; else pad_7 = 0;
-	if (digitalRead(26) == 0)pad_x = 1; else pad_x = 0;
+	//digitalWrite(25, LOW);
+	//digitalWrite(24, HIGH);
+	//digitalWrite(23, HIGH);
+	//digitalWrite(22, HIGH);
+	//if (digitalRead(29)) pad_1 = 0;else pad_1 = 1;
+	//if (digitalRead(28)) pad_4 = 0;else pad_4 = 1;
+	//if (digitalRead(27)) pad_7 = 0;else pad_7 = 1;
+	//if (digitalRead(26)) pad_x = 0;else pad_x = 1;
+	PORTA = B11110111;//èàóùåyó âªÇÃÇΩÇﬂÇ±Ç¡ÇøÇÃèëÇ´ï˚Ç…Ç∑ÇÈ
+	if (PINA & _BV(7)) pad_1 = 0;else pad_1 = 1;
+	if (PINA & _BV(6)) pad_4 = 0;else pad_4 = 1;
+	if (PINA & _BV(5)) pad_7 = 0;else pad_7 = 1;
+	if (PINA & _BV(4)) pad_x = 0;else pad_x = 1;
 
-	digitalWrite(25, HIGH);
-	digitalWrite(24, LOW);
-	digitalWrite(23, HIGH);
-	digitalWrite(22, HIGH);
-	if (digitalRead(29) == 0)pad_2 = 1; else pad_2 = 0;
-	if (digitalRead(28) == 0)pad_5 = 1; else pad_5 = 0;
-	if (digitalRead(27) == 0)pad_8 = 1; else pad_8 = 0;
-	if (digitalRead(26) == 0)pad_0 = 1; else pad_0 = 0;
+	//digitalWrite(25, HIGH);
+	//digitalWrite(24, LOW);
+	//digitalWrite(23, HIGH);
+	//digitalWrite(22, HIGH);
+	PORTA = B11111011;
+	if (PINA & _BV(7))pad_2 = 0; else pad_2 = 1;
+	if (PINA & _BV(6))pad_5 = 0; else pad_5 = 1;
+	if (PINA & _BV(5))pad_8 = 0; else pad_8 = 1;
+	if (PINA & _BV(4))pad_0 = 0; else pad_0 = 1;
 
-	digitalWrite(25, HIGH);
-	digitalWrite(24, HIGH);
-	digitalWrite(23, LOW);
-	digitalWrite(22, HIGH);
-	if (digitalRead(29) == 0)pad_3 = 1; else pad_3 = 0;
-	if (digitalRead(28) == 0)pad_6 = 1; else pad_6 = 0;
-	if (digitalRead(27) == 0)pad_9 = 1; else pad_9 = 0;
-	if (digitalRead(26) == 0)pad_s = 1; else pad_s = 0;
+	//digitalWrite(25, HIGH);
+	//digitalWrite(24, HIGH);
+	//digitalWrite(23, LOW);
+	//digitalWrite(22, HIGH);
+	PORTA = B11111101;
+	if (PINA & _BV(7))pad_3 = 0; else pad_3 = 1;
+	if (PINA & _BV(6))pad_6 = 0; else pad_6 = 1;
+	if (PINA & _BV(5))pad_9 = 0; else pad_9 = 1;
+	if (PINA & _BV(4))pad_s = 0; else pad_s = 1;
 
-	digitalWrite(25, HIGH);
-	digitalWrite(24, HIGH);
-	digitalWrite(23, HIGH);
-	digitalWrite(22, LOW);
-	if (digitalRead(29) == 0)pad_A = 1; else pad_A = 0;
-	if (digitalRead(28) == 0)pad_B = 1; else pad_B = 0;
-	if (digitalRead(27) == 0)pad_C = 1; else pad_C = 0;
-	if (digitalRead(26) == 0)pad_D = 1; else pad_D = 0;
+	//digitalWrite(25, HIGH);
+	//digitalWrite(24, HIGH);
+	//digitalWrite(23, HIGH);
+	//digitalWrite(22, LOW);
+	PORTA = B11111110;
+	if (PINA & _BV(7))pad_A = 0; else pad_A = 1;
+	if (PINA & _BV(6))pad_B = 0; else pad_B = 1;
+	if (PINA & _BV(5))pad_C = 0; else pad_C = 1;
+	if (PINA & _BV(4))pad_D = 0; else pad_D = 1;
 
 	if (pad_0 == 1)
 	{
