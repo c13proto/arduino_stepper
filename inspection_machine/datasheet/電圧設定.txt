@@ -1,3 +1,11 @@
+[予備用]
 0.33A phase(モータの定格電流)
 Current Limit =0.33*0.7=0.231[A](1/32ステップでは70%)
 Vref=Current Limit/2=0.1655[V]
+
+[xyテーブル]
+DRV8825の最大電流は2.5A phase
+2.4A phase(モータ仕様は2.6A)
+2.4*0.7=1.68[A]
+Vref=0.84[V]
+

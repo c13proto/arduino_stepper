@@ -9,8 +9,6 @@ int PAD_4;int PAD_5; int PAD_6;int PAD_B;
 int PAD_7;int PAD_8; int PAD_9;int PAD_C;
 int PAD_x;int PAD_0; int PAD_s;int PAD_D;
 
-
-
 void KeypadClass::init()
 {
 	pinMode(29, INPUT_PULLUP);//PA7
@@ -75,6 +73,13 @@ void KeypadClass::get_status()
 	if (PINA & _BV(6))pad_B = 0; else pad_B = 1;
 	if (PINA & _BV(5))pad_C = 0; else pad_C = 1;
 	if (PINA & _BV(4))pad_D = 0; else pad_D = 1;
+
+	//123AÇÃóÒÇæÇØÇ™Ç∏ÇÍÇÈÇÃÇ≈èCê≥ÅDÇ‹Ç∂Ç≈ÇÌÇØÇÌÇ©ÇÁÇÒ
+	bool buff=pad_1;
+	pad_1 = pad_2;
+	pad_2 = pad_3;
+	pad_3 = pad_A;
+	pad_A = buff;
 
 	if (pad_0 == 1)
 	{
@@ -276,7 +281,7 @@ void KeypadClass::get_status()
 
 	if (pad_x == 1) {
 		if (PAD_x == 0)
-			PAD_x = 1;
+				PAD_x = 1;
 		else if (PAD_x == 1)
 			PAD_x = 2;
 	}
@@ -287,5 +292,32 @@ void KeypadClass::get_status()
 		else PAD_x = 0;
 	}
 }
+
+void KeypadClass::serial_debug()
+{
+	Serial.print('|');
+	Serial.print(PAD_1);
+	Serial.print(PAD_2);
+	Serial.print(PAD_3);
+	Serial.print(PAD_A);
+	Serial.print('|');
+	Serial.print(PAD_4);
+	Serial.print(PAD_5);
+	Serial.print(PAD_6);
+	Serial.print(PAD_B);
+	Serial.print('|');
+	Serial.print(PAD_7);
+	Serial.print(PAD_8);
+	Serial.print(PAD_9);
+	Serial.print(PAD_C);
+	Serial.print('|');
+	Serial.print(PAD_x);
+	Serial.print(PAD_0);
+	Serial.print(PAD_s);
+	Serial.print(PAD_D);
+	Serial.print('|');
+	Serial.println();
+}
+
 KeypadClass Keypad;
 

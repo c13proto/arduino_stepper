@@ -28,14 +28,25 @@
 class Stepp_motorClass
 {
  protected:
-
+	 void X_master_ctrl();
+	 void Y_master_ctrl();
+	 void Z_master_ctrl();
+	 float speed_z;
+	 float speed_x;
+	 float speed_y;
+	 int aim_z;
+	 int aim_x;
+	 int aim_y;
 
  public:
 	void init();
+	void stepp_master_ctrl();
+	void stepp_slave_ctrl(String);
 };
 extern AccelStepper motorX;
 extern AccelStepper motorY;
 extern AccelStepper motorZ;
+
 extern Stepp_motorClass Stepp_motor;
 
 #endif

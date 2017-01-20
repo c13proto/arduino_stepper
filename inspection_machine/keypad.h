@@ -17,6 +17,7 @@ class KeypadClass
  public:
 	void init();
 	void get_status();
+	void serial_debug();
 };
 
 extern int PAD_1;extern int PAD_2;extern int PAD_3;extern int PAD_A;

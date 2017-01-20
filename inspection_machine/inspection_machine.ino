@@ -8,10 +8,12 @@
 #define MODE_MASTER 1
 #define MODE_SLAVE 2
 int CTRL_MODE = MODE_SLEEP;
+int AD8;//analogRead(8);
 void timer_interrupt() {//メインの操作系の処理こっち
 
 	Keypad.get_status();//pad状態更新	
 	mode_update();//CTRL_MODE更新
+	AD8 = analogRead(8);
 	//stepper
 	if (CTRL_MODE == MODE_MASTER)master_ctrl();
 	if (CTRL_MODE == MODE_SLAVE)slave_ctrl();
@@ -29,13 +31,9 @@ void mode_update()
 //マスターモードの処理
 void master_ctrl()
 {
-	if (PAD_0) {
-		// If at the end of travel go to the other end
-		if (motorZ.distanceToGo() == 0)
-			motorZ.moveTo(-motorZ.currentPosition());
-		motorZ.run();
-	}
+	Stepp_motor.stepp_master_ctrl();
 }
+
 //スレーブモードの処理
 const int COMMAND_LENGTH = 10;//コマンドの文字数
 char buff[COMMAND_LENGTH] = {};//
@@ -44,6 +42,7 @@ int char_counter = 0;
 void slave_ctrl()
 {
 	command_update();//コマンド受信
+	Stepp_motor.stepp_slave_ctrl(COMMAND);
 
 }
 void command_update()
@@ -81,12 +80,12 @@ void setup()
 
 void loop()//デバッグ系の処理をこっちに(重いから)
 {
-	int pos = motorZ.currentPosition();
-
 	u8g.firstPage();
 	do {
-		//PCデバッグ(これめちゃ重)
-		Serial.println(PAD_D);
+		
+		//PCデバッグ(どうやらシリアル受信に影響するっぽいからあんまやらないほうがいいかも)
+		//Keypad.serial_debug();
+
 		//MODE表示
 		if(CTRL_MODE==0)u8g.drawStr(45, 10, "SLEEP");
 		else if(CTRL_MODE == 1)u8g.drawStr(45, 10, "MASTER");
@@ -94,11 +93,11 @@ void loop()//デバッグ系の処理をこっちに(重いから)
 		
 		//pos表示
 		char buf[COMMAND_LENGTH];
-		sprintf(buf, "%d", pos);
+		sprintf(buf, "%d", motorZ.currentPosition());
 		u8g.drawStr(4, 20, buf);
 		
 		//AD表示
-		sprintf(buf, "%d", analogRead(A8));
+		sprintf(buf, "%d", AD8);
 		u8g.drawStr(4, 30, buf);
 
 		//COMMAND
