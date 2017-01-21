@@ -22,11 +22,15 @@ void timer_interrupt() {//メインの操作系の処理こっち
 }
 void mode_update()
 {
+	static char mode_old;
 	if (PAD_x == 1)CTRL_MODE++;
 	if (CTRL_MODE > 2)CTRL_MODE = MODE_SLEEP;
 
 	if (CTRL_MODE == MODE_SLEEP)DRIVER_OFF;
 	else DRIVER_ON;
+
+	if(mode_old!= CTRL_MODE)Stepp_motor.stepp_stop();//モードが切り替わるタイミングはモータのポジション保持しない
+	mode_old = CTRL_MODE;
 }
 //マスターモードの処理
 void master_ctrl()
@@ -35,9 +39,9 @@ void master_ctrl()
 }
 
 //スレーブモードの処理
-const int COMMAND_LENGTH = 10;//コマンドの文字数
+const int COMMAND_LENGTH = 10;//コマンドの最大文字数
 char buff[COMMAND_LENGTH] = {};//
-String COMMAND = "ready!";
+String COMMAND = "ready(^^)";
 int char_counter = 0;
 void slave_ctrl()
 {
@@ -50,7 +54,9 @@ void command_update()
 	if (Serial.available())
 	{
 		char data = Serial.read();
-		if (data != 'e') {//COMMAND_LENGTH+1文字目にeを送られることでコマンドと認識させる
+
+		//10文字+eでの判断
+		if (data != ';') {//';'を送られることでコマンドと認識させる
 			buff[char_counter] = data;
 			char_counter++;
 		}
@@ -61,7 +67,7 @@ void command_update()
 				COMMAND = "          ";//COMMAND_LENGTHぶんのスペース用意してやらないと格納してくれないみたい
 				for (i = 0; i < COMMAND_LENGTH; i++)COMMAND[i] = buff[i];
 			}
-			else COMMAND = "error";
+			else COMMAND = "no command";
 			char_counter = 0;
 		}
 	}
@@ -93,17 +99,24 @@ void loop()//デバッグ系の処理をこっちに(重いから)
 		
 		//pos表示
 		char buf[COMMAND_LENGTH];
-		sprintf(buf, "%d", motorZ.currentPosition());
-		u8g.drawStr(4, 20, buf);
+		sprintf(buf, "%ld", motorX.currentPosition());
+		u8g.drawStr(2, 20, "X:");
+		u8g.drawStr(17, 20, buf);
+		sprintf(buf, "%ld", motorY.currentPosition());
+		u8g.drawStr(2, 30, "Y:");
+		u8g.drawStr(17, 30, buf);
+		sprintf(buf, "%ld", motorZ.currentPosition());
+		u8g.drawStr(2, 40, "Z:");
+		u8g.drawStr(17, 40, buf);
 		
 		//AD表示
 		sprintf(buf, "%d", AD8);
-		u8g.drawStr(4, 30, buf);
+		u8g.drawStr(2, 50, buf);
 
 		//COMMAND
 		int i = 0;
 		for (i = 0; i < COMMAND_LENGTH; i++)buf[i] = COMMAND[i];
-		u8g.drawStr(4, 40, buf);
+		u8g.drawStr(40, 50, buf);
 
 	} while (u8g.nextPage());
 
