@@ -3,12 +3,18 @@
 // 
 #include "Stepp_motor.h"
 #include "keypad.h"
-AccelStepper motorX;
-AccelStepper motorY;
-AccelStepper motorZ;
+AccelStepper MOTOR_X;
+AccelStepper MOTOR_Y;
+AccelStepper MOTOR_Z;
+
+int SET_POS_MODE;//master_ctrl‚Åİ’è‚µ‚Ä‚¢‚éƒ‚[ƒ^(x,y,z)=(1,2,3)
+String MOTOR_POS_SET;
+
 
 void Stepp_motorClass::init()
 {
+	Serial.println("Stepp_motorClass.init()");
+
 	pinMode(MOTOR_ENABLE, OUTPUT);
 	DRIVER_OFF;
 
@@ -19,77 +25,138 @@ void Stepp_motorClass::init()
 	pinMode(STEP_Y, OUTPUT);
 	pinMode(STEP_Z, OUTPUT);
 
-	motorX = AccelStepper(AccelStepper::DRIVER, STEP_X, DIR_X);
-	motorY = AccelStepper(AccelStepper::DRIVER, STEP_Y, DIR_Y);
-	motorZ = AccelStepper(AccelStepper::DRIVER, STEP_Z, DIR_Z);
+	MOTOR_X = AccelStepper(AccelStepper::DRIVER, STEP_X, DIR_X);
+	MOTOR_Y = AccelStepper(AccelStepper::DRIVER, STEP_Y, DIR_Y);
+	MOTOR_Z = AccelStepper(AccelStepper::DRIVER, STEP_Z, DIR_Z);
 	
 	//runSpeed()‚Å•ûŒü”½“]‚·‚é‚Ég‚¤
 	speed_z = 1000;
 	speed_x = 1000;
 	speed_y = 1000;
+	SET_POS_MODE = 0;//master_ctrl‚Åİ’è‚µ‚Ä‚¢‚éƒ‚[ƒ^x:1 y:2 z:3
+	MOTOR_POS_SET = "";
 
-	motorX.setMaxSpeed(speed_x);//[puls/sec] accelstepper‚Å‚Í1000‚Í’´‚¦‚È‚¢İŒv‚ğ‚µ‚Ä‚¢‚é‚ç‚µ‚¢(³‚Ì”‚ğ‘ã“ü)
-	motorY.setMaxSpeed(speed_y);//1000ˆÈã‚Ì”‚ğ“ü‚ê‚é‚Æ•Ï‚È“®ì‚·‚é‚Æ‚«‚ ‚è
-	motorZ.setMaxSpeed(speed_z);
-	motorX.setSpeed(speed_x);
-	motorY.setSpeed(speed_y);
-	motorZ.setSpeed(speed_z);
-	motorX.setAcceleration(1000);
-	motorY.setAcceleration(1000);
-	motorZ.setAcceleration(1000);
+	MOTOR_X.setMaxSpeed(speed_x);//[puls/sec] accelstepper‚Å‚Í1000‚Í’´‚¦‚È‚¢İŒv‚ğ‚µ‚Ä‚¢‚é‚ç‚µ‚¢(³‚Ì”‚ğ‘ã“ü)
+	MOTOR_Y.setMaxSpeed(speed_y);//1000ˆÈã‚Ì”‚ğ“ü‚ê‚é‚Æ•Ï‚È“®ì‚·‚é‚Æ‚«‚ ‚è
+	MOTOR_Z.setMaxSpeed(speed_z);
+	MOTOR_X.setSpeed(speed_x);
+	MOTOR_Y.setSpeed(speed_y);
+	MOTOR_Z.setSpeed(speed_z);
+	MOTOR_X.setAcceleration(1000);
+	MOTOR_Y.setAcceleration(1000);
+	MOTOR_Z.setAcceleration(1000);
+	MOTOR_X.moveTo(0);
+	MOTOR_Y.moveTo(0);
+	MOTOR_Z.moveTo(0);
 
 }
 
 void Stepp_motorClass::stepp_master_ctrl()
 {
-	X_master_ctrl();//4,6‚Ú‚½‚ñ
-	Y_master_ctrl();//2,8‚Ú‚½‚ñ
-	Z_master_ctrl();//1,3‚Ú‚½‚ñ
+	X_master_ctrl();
+	Y_master_ctrl();
+	Z_master_ctrl();
+
+	motors_run();
 }
 void Stepp_motorClass::X_master_ctrl()
 {
-	if (PAD_6 != 0)
+	if (SET_POS_MODE != 1 && PRESSED_KEY == 'A')
+		SET_POS_MODE = 1;
+	else if (SET_POS_MODE == 1)
 	{
-		if (speed_x < 0)speed_x*=-1;
-		motorX.setSpeed(speed_x);
-		motorX.runSpeed();
-	}
-	if (PAD_4 != 0)
-	{
-		if (speed_x > 0)speed_x *= -1;
-		motorX.setSpeed(speed_x);
-		motorX.runSpeed();
+		if (PRESSED_KEY >= '0'&& PRESSED_KEY <= '9')
+			MOTOR_POS_SET += PRESSED_KEY;//”š‚Ì“ü—Í
+		else if (PRESSED_KEY == '*')//+-‚Ì“ü—Í
+		{
+			if (MOTOR_POS_SET.equals("-"))MOTOR_POS_SET = "+";
+			else MOTOR_POS_SET = "-";
+		}
+		else if (PRESSED_KEY == '#' && MOTOR_POS_SET.length() > 0)
+			MOTOR_POS_SET.remove(MOTOR_POS_SET.length() - 1);//•¶š’ù³
+		else if (PRESSED_KEY == 'A')
+		{
+			if (isFloat(MOTOR_POS_SET))
+			{
+				if (MOTOR_POS_SET.length() != 0)
+					MOTOR_X.moveTo(MOTOR_POS_SET.toInt());//‹ó•¶š‚¶‚á‚È‚¯‚ê‚Î
+				else MOTOR_X.move(0);//‹ó•¶š‚È‚ç“®‚©‚È‚¢
+			}
+			SET_POS_MODE = 0;
+			MOTOR_POS_SET = "";
+		}
 	}
 }
 void Stepp_motorClass::Y_master_ctrl()
 {
-	if (PAD_2 != 0)
+	if (SET_POS_MODE != 2 && PRESSED_KEY == 'B')
+		SET_POS_MODE = 2;
+	else if (SET_POS_MODE == 2)
 	{
-		if (speed_y < 0)speed_y *= -1;
-		motorY.setSpeed(speed_y);
-		motorY.runSpeed();
-	}
-	if (PAD_8 != 0)
-	{
-		if (speed_y > 0)speed_y *= -1;
-		motorY.setSpeed(speed_y);
-		motorY.runSpeed();
+		if (PRESSED_KEY >= '0'&& PRESSED_KEY <= '9')
+			MOTOR_POS_SET += PRESSED_KEY;//”š‚Ì“ü—Í
+		else if (PRESSED_KEY == '*')//+-‚Ì“ü—Í
+		{
+			if (MOTOR_POS_SET.equals("-"))MOTOR_POS_SET = "+";
+			else MOTOR_POS_SET = "-";
+		}
+		else if (PRESSED_KEY == '#' && MOTOR_POS_SET.length() > 0)
+			MOTOR_POS_SET.remove(MOTOR_POS_SET.length() - 1);//•¶š’ù³
+		else if (PRESSED_KEY == 'B')
+		{
+			if (isFloat(MOTOR_POS_SET))
+			{
+				if (MOTOR_POS_SET.length() != 0)
+					MOTOR_Y.moveTo(MOTOR_POS_SET.toInt());//‹ó•¶š‚¶‚á‚È‚¯‚ê‚Î
+				else MOTOR_Y.move(0);//‹ó•¶š‚È‚ç“®‚©‚È‚¢
+			}
+			SET_POS_MODE = 0;
+			MOTOR_POS_SET = "";
+		}
 	}
 }
 void Stepp_motorClass::Z_master_ctrl()
 {
-	if (PAD_3 != 0)
-	{
-		if (speed_z < 0)speed_z *= -1;
-		motorZ.setSpeed(speed_z);
-		motorZ.runSpeed();
+	if (SET_POS_MODE != 3 && PRESSED_KEY=='C')
+		SET_POS_MODE = 3;
+	else if (SET_POS_MODE == 3)
+	{	
+		if (PRESSED_KEY >= '0'&& PRESSED_KEY <= '9')
+			MOTOR_POS_SET += PRESSED_KEY;//”š‚Ì“ü—Í
+		else if (PRESSED_KEY == '*')//+-‚Ì“ü—Í
+		{
+			if(MOTOR_POS_SET.equals("-"))
+				MOTOR_POS_SET = "+";
+			else MOTOR_POS_SET = "-";
+		}
+		else if (PRESSED_KEY=='#' && MOTOR_POS_SET.length() > 0)
+			MOTOR_POS_SET.remove(MOTOR_POS_SET.length()-1);//•¶š’ù³
+		else if (PRESSED_KEY=='C')
+		{
+			if (isFloat(MOTOR_POS_SET))
+			{
+				if(MOTOR_POS_SET.length() != 0)
+					MOTOR_Z.moveTo(MOTOR_POS_SET.toInt());//‹ó•¶š‚¶‚á‚È‚¯‚ê‚Î
+				else MOTOR_Z.move(0);//‹ó•¶š‚È‚ç“®‚©‚È‚¢
+			}
+			SET_POS_MODE = 0;
+			MOTOR_POS_SET = "";
+		}
 	}
-	if (PAD_1 != 0)
-	{
-		if (speed_z > 0)speed_z *= -1;
-		motorZ.setSpeed(speed_z);
-		motorZ.runSpeed();
-	}
+	//if (PRESSED_KEY != '\0')Serial.print(MOTOR_POS_SET);
+
+	//if (PAD_3 != 0)
+	//{
+	//	if (speed_z < 0)speed_z *= -1;
+	//	MOTOR_Z.setSpeed(speed_z);
+	//	MOTOR_Z.runSpeed();
+	//}
+	//if (PAD_1 != 0)
+	//{
+	//	if (speed_z > 0)speed_z *= -1;
+	//	MOTOR_Z.setSpeed(speed_z);
+	//	MOTOR_Z.runSpeed();
+	//}
 }
 void Stepp_motorClass::stepp_slave_ctrl(String command)
 {
@@ -105,9 +172,7 @@ void Stepp_motorClass::stepp_slave_ctrl(String command)
 	}
 	command_old = command;
 
-	motorX.run();
-	motorY.run();
-	motorZ.run();
+	motors_run();
 
 }
 void Stepp_motorClass::X_slave_ctrl(String command)
@@ -116,15 +181,15 @@ void Stepp_motorClass::X_slave_ctrl(String command)
 	{
 		String val = command;
 		val.replace("Vx", "");
-		if (isFloat(val)) motorX.setMaxSpeed(val.toInt());
+		if (isFloat(val)) MOTOR_X.setMaxSpeed(val.toInt());
 	}
 	if (command.startsWith("X"))
 	{
 		String val = command;
 		val.replace("X", "");
-		if (isFloat(val)) motorX.moveTo(val.toInt());//–Ú•WˆÊ’u‚Ìw’èDmotorX.run()‚Å“®‚­
+		if (isFloat(val)) MOTOR_X.moveTo(val.toInt());//–Ú•WˆÊ’u‚Ìw’èDMOTOR_X.run()‚Å“®‚­
 	}
-	if (command.equals("STOP_X") || command.equals("STOP"))motorX.stop();//~‚Ü‚éˆÊ’u‚É–Ú•WÀ•W‚ğ•ÏX
+	if (command.equals("STOP_X") || command.equals("STOP"))MOTOR_X.stop();//~‚Ü‚éˆÊ’u‚É–Ú•WÀ•W‚ğ•ÏX
 
 
 }
@@ -134,15 +199,15 @@ void Stepp_motorClass::Y_slave_ctrl(String command)
 	{
 		String val = command;
 		val.replace("Vy", "");
-		if (isFloat(val)) motorY.setMaxSpeed(val.toInt());
+		if (isFloat(val)) MOTOR_Y.setMaxSpeed(val.toInt());
 	}
 	if (command.startsWith("Y"))
 	{
 		String val = command;
 		val.replace("Y", "");
-		if (isFloat(val)) motorY.moveTo(val.toInt());
+		if (isFloat(val)) MOTOR_Y.moveTo(val.toInt());
 	}
-	if (command.equals("STOP_Y") || command.equals("STOP"))motorY.stop();
+	if (command.equals("STOP_Y") || command.equals("STOP"))MOTOR_Y.stop();
 
 
 }
@@ -152,15 +217,15 @@ void Stepp_motorClass::Z_slave_ctrl(String command)
 	{
 		String val = command;
 		val.replace("Vz", "");
-		if (isFloat(val)) motorZ.setMaxSpeed(val.toInt());
+		if (isFloat(val)) MOTOR_Z.setMaxSpeed(val.toInt());
 	}
 	if (command.startsWith("Z"))
 	{
 		String val = command;
 		val.replace("Z", "");
-		if (isFloat(val)) motorZ.moveTo(val.toInt());
+		if (isFloat(val)) MOTOR_Z.moveTo(val.toInt());
 	}
-	if (command.equals("STOP_Z") || command.equals("STOP"))motorZ.stop();
+	if (command.equals("STOP_Z") || command.equals("STOP"))MOTOR_Z.stop();
 
 
 }
@@ -181,14 +246,18 @@ boolean Stepp_motorClass::isFloat(String tString) {//String‚ğ”’l‰»o—ˆ‚é‚©‚Ç‚¤‚
 	}
 	return true;
 }
-void Stepp_motorClass::stepp_stop()
+void Stepp_motorClass::motors_stop()
 {
-	motorX.move(0);//‹}’â~‚É‚È‚é‚Ì‚Å“®‚¢‚Ä‚é‚Æ‚«‚É‚â‚ç‚È‚¢‚Ù‚¤‚ª‚¢‚¢
-	motorY.move(0);
-	motorZ.move(0);
-	motorX.stop();
-	motorY.stop();
-	motorZ.stop();
+	MOTOR_X.move(0);//‹}’â~‚É‚È‚é‚Ì‚Å“®‚¢‚Ä‚é‚Æ‚«‚É‚â‚ç‚È‚¢‚Ù‚¤‚ª‚¢‚¢
+	MOTOR_Y.move(0);
+	MOTOR_Z.move(0);
 }
+void Stepp_motorClass::motors_run()
+{
+	MOTOR_X.run();
+	MOTOR_Y.run();
+	MOTOR_Z.run();
+}
+
 Stepp_motorClass Stepp_motor;
 

@@ -8,9 +8,11 @@ int PAD_1;int PAD_2; int PAD_3;int PAD_A;
 int PAD_4;int PAD_5; int PAD_6;int PAD_B;
 int PAD_7;int PAD_8; int PAD_9;int PAD_C;
 int PAD_x;int PAD_0; int PAD_s;int PAD_D;
+char PRESSED_KEY;
 
 void KeypadClass::init()
 {
+	Serial.println("KeypadClass::init()");
 	pinMode(29, INPUT_PULLUP);//PA7
 	pinMode(28, INPUT_PULLUP);//PA6
 	pinMode(27, INPUT_PULLUP);//PA5
@@ -20,6 +22,8 @@ void KeypadClass::init()
 	pinMode(24, OUTPUT);//PA2
 	pinMode(23, OUTPUT);//PA1
 	pinMode(22, OUTPUT);//PA0
+
+	PRESSED_KEY = ' ';
 }
 
 void KeypadClass::get_status()
@@ -291,6 +295,8 @@ void KeypadClass::get_status()
 			PAD_x = 3;
 		else PAD_x = 0;
 	}
+
+	PRESSED_KEY = get_pressed_key();
 }
 
 void KeypadClass::serial_debug()
@@ -318,6 +324,27 @@ void KeypadClass::serial_debug()
 	Serial.print('|');
 	Serial.println();
 }
-
+char KeypadClass::get_pressed_key()
+{
+	char key = '\0';
+	if(PAD_1==1)key= '1';
+	if(PAD_2==1)key= '2';
+	if(PAD_3==1)key= '3';
+	if(PAD_4==1)key= '4';
+	if(PAD_5==1)key= '5';
+	if(PAD_6==1)key= '6';
+	if(PAD_7==1)key= '7';
+	if(PAD_8==1)key= '8';
+	if(PAD_9==1)key= '9'; 
+	if(PAD_0==1)key= '0'; 
+	if(PAD_x==1)key= '*'; 
+	if(PAD_s==1)key= '#'; 
+	if(PAD_A==1)key= 'A';
+	if(PAD_B==1)key= 'B';
+	if(PAD_C==1)key= 'C';
+	if(PAD_D==1)key= 'D';
+	//if (key != "")Serial.print(key);
+	return key;
+}
 KeypadClass Keypad;
 

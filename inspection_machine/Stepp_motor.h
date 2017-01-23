@@ -24,6 +24,12 @@
 #define DRIVER_ON digitalWrite(MOTOR_ENABLE, LOW)
 #define DRIVER_OFF digitalWrite(MOTOR_ENABLE, HIGH)
 
+extern AccelStepper MOTOR_X;
+extern AccelStepper MOTOR_Y;
+extern AccelStepper MOTOR_Z;
+
+extern int SET_POS_MODE;//master_ctrlで設定しているモータ(x,y,z)=(1,2,3)
+extern String MOTOR_POS_SET;
 
 class Stepp_motorClass
 {
@@ -38,17 +44,16 @@ class Stepp_motorClass
 	 int speed_x;
 	 int speed_y;
 	 int speed_z;
+	 void motors_run();
 
 
  public://メインで呼び出すやつ
 	void init();
 	void stepp_master_ctrl();
 	void stepp_slave_ctrl(String);
-	void stepp_stop();
+	void motors_stop();
 };
-extern AccelStepper motorX;
-extern AccelStepper motorY;
-extern AccelStepper motorZ;
+
 
 extern Stepp_motorClass Stepp_motor;
 
