@@ -69,8 +69,9 @@ void Stepp_motorClass::X_master_ctrl()
 			MOTOR_POS_SET += PRESSED_KEY;//”Žš‚Ì“ü—Í
 		else if (PRESSED_KEY == '*')//+-‚Ì“ü—Í
 		{
-			if (MOTOR_POS_SET.equals("-"))MOTOR_POS_SET = "+";
-			else MOTOR_POS_SET = "-";
+			if (MOTOR_POS_SET.startsWith("-"))
+				MOTOR_POS_SET.replace("-", "");
+			else MOTOR_POS_SET = "-" + MOTOR_POS_SET;
 		}
 		else if (PRESSED_KEY == '#' && MOTOR_POS_SET.length() > 0)
 			MOTOR_POS_SET.remove(MOTOR_POS_SET.length() - 1);//•¶Žš’ù³
@@ -97,8 +98,9 @@ void Stepp_motorClass::Y_master_ctrl()
 			MOTOR_POS_SET += PRESSED_KEY;//”Žš‚Ì“ü—Í
 		else if (PRESSED_KEY == '*')//+-‚Ì“ü—Í
 		{
-			if (MOTOR_POS_SET.equals("-"))MOTOR_POS_SET = "+";
-			else MOTOR_POS_SET = "-";
+			if (MOTOR_POS_SET.startsWith("-"))
+				MOTOR_POS_SET.replace("-", "");
+			else MOTOR_POS_SET = "-" + MOTOR_POS_SET;
 		}
 		else if (PRESSED_KEY == '#' && MOTOR_POS_SET.length() > 0)
 			MOTOR_POS_SET.remove(MOTOR_POS_SET.length() - 1);//•¶Žš’ù³
@@ -125,9 +127,9 @@ void Stepp_motorClass::Z_master_ctrl()
 			MOTOR_POS_SET += PRESSED_KEY;//”Žš‚Ì“ü—Í
 		else if (PRESSED_KEY == '*')//+-‚Ì“ü—Í
 		{
-			if(MOTOR_POS_SET.equals("-"))
-				MOTOR_POS_SET = "+";
-			else MOTOR_POS_SET = "-";
+			if (MOTOR_POS_SET.startsWith("-"))
+				MOTOR_POS_SET.replace("-","");
+			else MOTOR_POS_SET= "-"+MOTOR_POS_SET;
 		}
 		else if (PRESSED_KEY=='#' && MOTOR_POS_SET.length() > 0)
 			MOTOR_POS_SET.remove(MOTOR_POS_SET.length()-1);//•¶Žš’ù³
