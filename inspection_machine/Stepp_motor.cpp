@@ -51,8 +51,6 @@ void Stepp_motorClass::init()
 	MOTOR_X.setAcceleration(1000);
 	MOTOR_Y.setAcceleration(1000);
 	MOTOR_Z.setAcceleration(1000);
-
-
 }
 
 void Stepp_motorClass::stepp_master_ctrl()
@@ -60,21 +58,21 @@ void Stepp_motorClass::stepp_master_ctrl()
 	X_master_input_ctrl();
 	Y_master_input_ctrl();
 	Z_master_input_ctrl();
-	master_pad_controller_ctrl(250,250);
+	master_pad_controller_ctrl(500,1000);
 
 	motors_run();
 }
 void Stepp_motorClass::master_pad_controller_ctrl(int xy,int z)
 {
-	if (SET_POS_MODE == 0 && PAD_0!=0)
+	if (SET_POS_MODE == 0)
 	{
-		//リミット効かない
-		if (PAD_6 != 0)MOTOR_X.move(xy);
-		if (PAD_4 != 0)MOTOR_X.move(-xy);
-		if (PAD_2 != 0)MOTOR_Y.move(xy);
-		if (PAD_8 != 0)MOTOR_Y.move(-xy);
-		if (PAD_3 != 0)MOTOR_Z.move(z);
-		if (PAD_1 != 0)MOTOR_Z.move(-z);
+		//あとからのmove(0)が効かないのでリミット条件をここに書いている
+		if (PAD_6 != 0 && LIMIT_X1)MOTOR_X.move(xy);
+		if ((PAD_4 != 0 || PAD_5 != 0) && LIMIT_X0)MOTOR_X.move(-xy);//5ボタンはxyを初期位置に移動
+		if (PAD_2 != 0 && LIMIT_Y1)MOTOR_Y.move(xy);
+		if ((PAD_8 != 0 || PAD_5 != 0) && LIMIT_Y0)MOTOR_Y.move(-xy);
+		if (PAD_3 != 0 )MOTOR_Z.move(z);
+		if (PAD_1 != 0 )MOTOR_Z.move(-z);
 	}
 }
 void Stepp_motorClass::X_master_input_ctrl()
