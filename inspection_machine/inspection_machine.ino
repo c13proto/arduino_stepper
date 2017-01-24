@@ -26,8 +26,26 @@ void mode_update()
 	if (PAD_D == 1)CTRL_MODE++;
 	if (CTRL_MODE > 2)CTRL_MODE = MODE_SLEEP;
 
-	if (CTRL_MODE == MODE_SLEEP)DRIVER_OFF;
-	else DRIVER_ON;
+	if (CTRL_MODE == MODE_SLEEP) 
+	{
+		DRIVER_Z_OFF;
+		DRIVER_XY_OFF; 
+		DRIVER_STATE = 0;
+	}
+	else
+	{
+		DRIVER_Z_ON;
+		if (SW_STATE) 
+		{
+			DRIVER_XY_OFF;
+			DRIVER_STATE = 1;
+		}
+		else
+		{
+			DRIVER_XY_ON;
+			DRIVER_STATE = 2;
+		}
+	}
 
 	if (mode_old != CTRL_MODE)
 	{
@@ -95,87 +113,109 @@ void loop()//デバッグ系の処理をこっちに(重いから)
 		
 		//PCデバッグ(どうやらシリアル受信に影響するっぽいからあんまやらないほうがいいかも)
 		//Keypad.serial_debug();
-		//if (PRESSED_KEY != "")Serial.print(PRESSED_KEY);
-		
-		//MODE表示
-		if(CTRL_MODE==0)u8g.drawStr(45, 10, "SLEEP");
-		else if(CTRL_MODE == 1)u8g.drawStr(45, 10, "MASTER");
-		else if (CTRL_MODE == 2)u8g.drawStr(45, 10, "SLAVE");
-		
-		//pos表示
 		char buf[COMMAND_LENGTH];
-		if (SET_POS_MODE == 0)
-		{
-			sprintf(buf, "%ld", MOTOR_X.currentPosition());
-			u8g.drawStr(2, 20, "X:");
-			u8g.drawStr(17, 20, buf);
-			sprintf(buf, "%ld", MOTOR_Y.currentPosition());
-			u8g.drawStr(2, 30, "Y:");
-			u8g.drawStr(17, 30, buf);
-			sprintf(buf, "%ld", MOTOR_Z.currentPosition());
-			u8g.drawStr(2, 40, "Z:");
-			u8g.drawStr(17, 40, buf);
-		}
-		else if (SET_POS_MODE == 1)
-		{
-			int i = 0;
-			u8g.drawStr(2, 20, "X->");
-			for (i = 0; i < COMMAND_LENGTH; i++)buf[i] = ' ';
-			for (i = 0; i < MOTOR_POS_SET.length(); i++)buf[i] = MOTOR_POS_SET[i];
-			u8g.drawStr(25, 20, buf);
-			u8g.drawStr(25, 20, "__________");
-
-			sprintf(buf, "%ld", MOTOR_Y.currentPosition());
-			u8g.drawStr(2, 30, "Y:");
-			u8g.drawStr(17, 30, buf);
-			sprintf(buf, "%ld", MOTOR_Z.currentPosition());
-			u8g.drawStr(2, 40, "Z:");
-			u8g.drawStr(17, 40, buf);
-		}
-		else if (SET_POS_MODE == 2)
-		{
-			sprintf(buf, "%ld", MOTOR_X.currentPosition());
-			u8g.drawStr(2, 20, "X:");
-			u8g.drawStr(17, 20, buf);
-
-			int i = 0;
-			u8g.drawStr(2, 30, "Y->");
-			for (i = 0; i < COMMAND_LENGTH; i++)buf[i] = ' ';
-			for (i = 0; i < MOTOR_POS_SET.length(); i++)buf[i] = MOTOR_POS_SET[i];
-			u8g.drawStr(25, 30, buf);
-			u8g.drawStr(25, 30, "__________");
-
-			sprintf(buf, "%ld", MOTOR_Z.currentPosition());
-			u8g.drawStr(2, 40, "Z:");
-			u8g.drawStr(17, 40, buf);
-		}
-		else if (SET_POS_MODE == 3)
-		{
-			sprintf(buf, "%ld", MOTOR_X.currentPosition());
-			u8g.drawStr(2, 20, "X:");
-			u8g.drawStr(17, 20, buf);
-			sprintf(buf, "%ld", MOTOR_Y.currentPosition());
-			u8g.drawStr(2, 30, "Y:");
-			u8g.drawStr(17, 30, buf);
-
-			int i = 0;
-			u8g.drawStr(2, 40, "Z->");
-			for (i = 0; i < COMMAND_LENGTH; i++)buf[i] = ' ';
-			for (i = 0; i < MOTOR_POS_SET.length(); i++)buf[i] = MOTOR_POS_SET[i];
-			u8g.drawStr(25, 40, buf);
-			u8g.drawStr(25, 40, "__________");
-		}
 		
+		mode_view();//MODE表示			
+		pos_view();//pos表示	
+		driver_state_view();//モタドラ駆動してるかどうか
+
 		//AD表示
 		sprintf(buf, "%d", AD8);
 		u8g.drawStr(2, 50, buf);
 
 		//COMMAND
-		int i = 0;
-		for (i = 0; i < COMMAND_LENGTH; i++)buf[i] = COMMAND[i];
+		str_to_char_array(COMMAND, buf, COMMAND_LENGTH);
 		u8g.drawStr(40, 50, buf);
 
 	} while (u8g.nextPage());
 
 
+}
+void driver_state_view()
+{
+	switch (DRIVER_STATE)
+	{
+		case 0:break;
+		case 1:
+			u8g.drawStr(110, 40, "*");//z駆動中
+			break;
+		case 2:
+			u8g.drawStr(110, 20, "*");//x駆動中
+			u8g.drawStr(110, 30, "*");//y駆動中
+			u8g.drawStr(110, 40, "*");//z駆動中
+			break;
+		default:break;
+	}
+}
+void mode_view()
+{
+	if (CTRL_MODE == 0)u8g.drawStr(45, 10, "SLEEP");
+	else if (CTRL_MODE == 1)u8g.drawStr(45, 10, "MASTER");
+	else if (CTRL_MODE == 2)u8g.drawStr(45, 10, "SLAVE");
+}
+void pos_view()
+{
+	char buf[COMMAND_LENGTH];
+	if (SET_POS_MODE == 0)
+	{
+		sprintf(buf, "%ld", MOTOR_X.currentPosition());
+		u8g.drawStr(2, 20, "X:");
+		u8g.drawStr(17, 20, buf);
+		sprintf(buf, "%ld", MOTOR_Y.currentPosition());
+		u8g.drawStr(2, 30, "Y:");
+		u8g.drawStr(17, 30, buf);
+		sprintf(buf, "%ld", MOTOR_Z.currentPosition());
+		u8g.drawStr(2, 40, "Z:");
+		u8g.drawStr(17, 40, buf);
+	}
+	else if (SET_POS_MODE == 1)
+	{
+		u8g.drawStr(2, 20, "X->");
+		str_to_char_array(MOTOR_POS_SET, buf, COMMAND_LENGTH);
+		u8g.drawStr(25, 20, buf);
+		u8g.drawStr(25, 20, "__________");
+
+		sprintf(buf, "%ld", MOTOR_Y.currentPosition());
+		u8g.drawStr(2, 30, "Y:");
+		u8g.drawStr(17, 30, buf);
+		sprintf(buf, "%ld", MOTOR_Z.currentPosition());
+		u8g.drawStr(2, 40, "Z:");
+		u8g.drawStr(17, 40, buf);
+	}
+	else if (SET_POS_MODE == 2)
+	{
+		sprintf(buf, "%ld", MOTOR_X.currentPosition());
+		u8g.drawStr(2, 20, "X:");
+		u8g.drawStr(17, 20, buf);
+
+		u8g.drawStr(2, 30, "Y->");
+		str_to_char_array(MOTOR_POS_SET, buf, COMMAND_LENGTH);
+		u8g.drawStr(25, 30, buf);
+		u8g.drawStr(25, 30, "__________");
+
+		sprintf(buf, "%ld", MOTOR_Z.currentPosition());
+		u8g.drawStr(2, 40, "Z:");
+		u8g.drawStr(17, 40, buf);
+	}
+	else if (SET_POS_MODE == 3)
+	{
+		sprintf(buf, "%ld", MOTOR_X.currentPosition());
+		u8g.drawStr(2, 20, "X:");
+		u8g.drawStr(17, 20, buf);
+		sprintf(buf, "%ld", MOTOR_Y.currentPosition());
+		u8g.drawStr(2, 30, "Y:");
+		u8g.drawStr(17, 30, buf);
+
+		u8g.drawStr(2, 40, "Z->");
+		str_to_char_array(MOTOR_POS_SET, buf, COMMAND_LENGTH);
+		u8g.drawStr(25, 40, buf);
+		u8g.drawStr(25, 40, "__________");
+	}
+}
+void str_to_char_array(String str, char *s,int array_length)
+{
+	int i = 0;
+	for (i = 0; i < array_length; i++)s[i] = ' ';//キャラ配列のクリア
+	for (i = 0; i < array_length; i++)
+		if (str[i] != '\0')s[i] = str[i]; else break;
 }

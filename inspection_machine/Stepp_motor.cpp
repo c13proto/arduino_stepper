@@ -9,14 +9,15 @@ AccelStepper MOTOR_Z;
 
 int SET_POS_MODE;//master_ctrlで設定しているモータ(x,y,z)=(1,2,3)
 String MOTOR_POS_SET;
-
+int DRIVER_STATE;
 
 void Stepp_motorClass::init()
 {
-	Serial.println("Stepp_motorClass.init()");
-
-	pinMode(MOTOR_ENABLE, OUTPUT);
-	DRIVER_OFF;
+	pinMode(MOTOR_XY_ENABLE, OUTPUT);
+	pinMode(MOTOR_Z_ENABLE, OUTPUT);
+	DRIVER_XY_OFF;
+	DRIVER_Z_OFF;
+	pinMode(ENABLE_SW, INPUT_PULLUP);//xyモータのEnableを制御する
 
 	pinMode(DIR_X, OUTPUT);	
 	pinMode(DIR_Y, OUTPUT);
@@ -35,6 +36,7 @@ void Stepp_motorClass::init()
 	speed_y = 1000;
 	SET_POS_MODE = 0;//master_ctrlで設定しているモータx:1 y:2 z:3
 	MOTOR_POS_SET = "";
+	DRIVER_STATE = 0;//ドライバを有効にしてるかどうか．z xy= 0:off off 1:on off 2:on on
 
 	MOTOR_X.setMaxSpeed(speed_x);//[puls/sec] accelstepperでは1000は超えない設計をしているらしい(正の数を代入)
 	MOTOR_Y.setMaxSpeed(speed_y);//1000以上の数を入れると変な動作するときあり
@@ -53,13 +55,25 @@ void Stepp_motorClass::init()
 
 void Stepp_motorClass::stepp_master_ctrl()
 {
-	X_master_ctrl();
-	Y_master_ctrl();
-	Z_master_ctrl();
-
+	X_master_input_ctrl();
+	Y_master_input_ctrl();
+	Z_master_input_ctrl();
+	master_pad_controller_ctrl(500,500);
 	motors_run();
 }
-void Stepp_motorClass::X_master_ctrl()
+void Stepp_motorClass::master_pad_controller_ctrl(int xy,int z)
+{
+	if (SET_POS_MODE == 0 && PAD_0!=0)
+	{
+		if (PAD_6 != 0)MOTOR_X.move(xy);
+		if (PAD_4 != 0)MOTOR_X.move(-xy);
+		if (PAD_2 != 0)MOTOR_Y.move(xy);
+		if (PAD_8 != 0)MOTOR_Y.move(-xy);
+		if (PAD_3 != 0)MOTOR_Z.move(z);
+		if (PAD_1 != 0)MOTOR_Z.move(-z);
+	}
+}
+void Stepp_motorClass::X_master_input_ctrl()
 {
 	if (SET_POS_MODE != 1 && PRESSED_KEY == 'A')
 		SET_POS_MODE = 1;
@@ -88,7 +102,7 @@ void Stepp_motorClass::X_master_ctrl()
 		}
 	}
 }
-void Stepp_motorClass::Y_master_ctrl()
+void Stepp_motorClass::Y_master_input_ctrl()
 {
 	if (SET_POS_MODE != 2 && PRESSED_KEY == 'B')
 		SET_POS_MODE = 2;
@@ -117,7 +131,7 @@ void Stepp_motorClass::Y_master_ctrl()
 		}
 	}
 }
-void Stepp_motorClass::Z_master_ctrl()
+void Stepp_motorClass::Z_master_input_ctrl()
 {
 	if (SET_POS_MODE != 3 && PRESSED_KEY=='C')
 		SET_POS_MODE = 3;
