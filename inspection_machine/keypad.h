@@ -9,6 +9,9 @@
 	#include "WProgram.h"
 #endif
 
+#define cbi(PIN,bit)     PIN &= ~(1<<bit)//PIN‚Ìbit”Ô–Ú‚ðLow‚É
+#define sbi(PIN,bit)     PIN |=  (1<<bit)//PIN‚Ìbit”Ô–Ú‚ðHigh‚É
+#define ibi(PIN,bit)	bit_is_set(PIN, bit)//PIN‚Ìbit‚ªLOW‚È‚ç0‚ð•Ô‚·BHigh‚È‚ç0ˆÈŠO‚ð•Ô‚·
 class KeypadClass
 {
  protected:

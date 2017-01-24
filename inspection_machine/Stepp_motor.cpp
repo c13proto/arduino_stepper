@@ -13,22 +13,26 @@ int DRIVER_STATE;
 
 void Stepp_motorClass::init()
 {
-	pinMode(MOTOR_XY_ENABLE, OUTPUT);
-	pinMode(MOTOR_Z_ENABLE, OUTPUT);
+	pinMode(PIN_ENABLE_XY, OUTPUT);
+	pinMode(PIN_ENABLE_Z, OUTPUT);
 	DRIVER_XY_OFF;
 	DRIVER_Z_OFF;
-	pinMode(ENABLE_SW, INPUT_PULLUP);//xyÉÇÅ[É^ÇÃEnableÇêßå‰Ç∑ÇÈ
+	pinMode(PIN_SLIDE_SW, INPUT_PULLUP);//xyÉÇÅ[É^ÇÃEnableÇêßå‰Ç∑ÇÈ
+	pinMode(PIN_LIMIT_X0, INPUT_PULLUP);//ÉäÉ~ÉbÉgÉXÉCÉbÉ`
+	pinMode(PIN_LIMIT_Y0, INPUT_PULLUP);//ÉäÉ~ÉbÉgÉXÉCÉbÉ`
+	pinMode(PIN_LIMIT_X1, INPUT_PULLUP);//ÉäÉ~ÉbÉgÉXÉCÉbÉ`
+	pinMode(PIN_LIMIT_Y1, INPUT_PULLUP);//ÉäÉ~ÉbÉgÉXÉCÉbÉ`
 
-	pinMode(DIR_X, OUTPUT);	
-	pinMode(DIR_Y, OUTPUT);
-	pinMode(DIR_Z, OUTPUT);
-	pinMode(STEP_X, OUTPUT);
-	pinMode(STEP_Y, OUTPUT);
-	pinMode(STEP_Z, OUTPUT);
+	pinMode(PIN_DIR_X, OUTPUT);	
+	pinMode(PIN_DIR_Y, OUTPUT);
+	pinMode(PIN_DIR_Z, OUTPUT);
+	pinMode(PIN_STEP_X, OUTPUT);
+	pinMode(PIN_STEP_Y, OUTPUT);
+	pinMode(PIN_STEP_Z, OUTPUT);
 
-	MOTOR_X = AccelStepper(AccelStepper::DRIVER, STEP_X, DIR_X);
-	MOTOR_Y = AccelStepper(AccelStepper::DRIVER, STEP_Y, DIR_Y);
-	MOTOR_Z = AccelStepper(AccelStepper::DRIVER, STEP_Z, DIR_Z);
+	MOTOR_X = AccelStepper(AccelStepper::DRIVER, PIN_STEP_X, PIN_DIR_X);
+	MOTOR_Y = AccelStepper(AccelStepper::DRIVER, PIN_STEP_Y, PIN_DIR_Y);
+	MOTOR_Z = AccelStepper(AccelStepper::DRIVER, PIN_STEP_Z, PIN_DIR_Z);
 	
 	//runSpeed()Ç≈ï˚å¸îΩì]Ç∑ÇÈéûÇ…égÇ§
 	speed_z = 1000;
@@ -47,9 +51,7 @@ void Stepp_motorClass::init()
 	MOTOR_X.setAcceleration(1000);
 	MOTOR_Y.setAcceleration(1000);
 	MOTOR_Z.setAcceleration(1000);
-	MOTOR_X.moveTo(0);
-	MOTOR_Y.moveTo(0);
-	MOTOR_Z.moveTo(0);
+
 
 }
 
@@ -58,13 +60,15 @@ void Stepp_motorClass::stepp_master_ctrl()
 	X_master_input_ctrl();
 	Y_master_input_ctrl();
 	Z_master_input_ctrl();
-	master_pad_controller_ctrl(500,500);
+	master_pad_controller_ctrl(250,250);
+
 	motors_run();
 }
 void Stepp_motorClass::master_pad_controller_ctrl(int xy,int z)
 {
 	if (SET_POS_MODE == 0 && PAD_0!=0)
 	{
+		//ÉäÉ~ÉbÉgå¯Ç©Ç»Ç¢
 		if (PAD_6 != 0)MOTOR_X.move(xy);
 		if (PAD_4 != 0)MOTOR_X.move(-xy);
 		if (PAD_2 != 0)MOTOR_Y.move(xy);
@@ -159,20 +163,6 @@ void Stepp_motorClass::Z_master_input_ctrl()
 			MOTOR_POS_SET = "";
 		}
 	}
-	//if (PRESSED_KEY != '\0')Serial.print(MOTOR_POS_SET);
-
-	//if (PAD_3 != 0)
-	//{
-	//	if (speed_z < 0)speed_z *= -1;
-	//	MOTOR_Z.setSpeed(speed_z);
-	//	MOTOR_Z.runSpeed();
-	//}
-	//if (PAD_1 != 0)
-	//{
-	//	if (speed_z > 0)speed_z *= -1;
-	//	MOTOR_Z.setSpeed(speed_z);
-	//	MOTOR_Z.runSpeed();
-	//}
 }
 void Stepp_motorClass::stepp_slave_ctrl(String command)
 {
@@ -264,16 +254,41 @@ boolean Stepp_motorClass::isFloat(String tString) {//StringÇêîílâªèoóàÇÈÇ©Ç«Ç§Ç
 }
 void Stepp_motorClass::motors_stop()
 {
-	MOTOR_X.move(0);//ã}í‚é~Ç…Ç»ÇÈÇÃÇ≈ìÆÇ¢ÇƒÇÈÇ∆Ç´Ç…Ç‚ÇÁÇ»Ç¢ÇŸÇ§Ç™Ç¢Ç¢
+	MOTOR_X.move(0);//ÇªÇÃèÍÇ≈é~Ç‹ÇÈ
 	MOTOR_Y.move(0);
 	MOTOR_Z.move(0);
 }
 void Stepp_motorClass::motors_run()
 {
+	limit_ctrl();
 	MOTOR_X.run();
 	MOTOR_Y.run();
 	MOTOR_Z.run();
 }
+void Stepp_motorClass::limit_ctrl()
+{
+	static int x0_old,y0_old;
+	int x0 = LIMIT_X0;
+	int y0 = LIMIT_Y0;
+	int x1 = LIMIT_X1;
+	int y1 = LIMIT_Y1;
+	//setcurrentpositionÇåƒÇ—èoÇ∑Ç∆ÉÇÅ[É^é~Ç‹ÇÈédólÇÁÇµÇ¢ÇÃÇ≈ÅCÉäÉ~ÉbÉgó£ÇÍÇΩÉ^ÉCÉ~ÉìÉOÇÃ1âÒÇÃÇ›åƒÇ—èoÇ∑
+	if (!x0_old && x0)MOTOR_X.setCurrentPosition(0);
+	if (!y0_old && y0)MOTOR_Y.setCurrentPosition(0);
 
+	//1loopÇ≈ÇÃ2ìxÇﬂÇÃåƒÇ—èoÇµÇÕñ≥éãÇ≥ÇÍÇÈÇÁÇµÇ¢ÇÃÇ≈ÅCéËìÆÇÃÉäÉ~ÉbÉgÇÕå¯Ç©Ç»Ç¢
+	if (!x0)
+		if (MOTOR_X.distanceToGo()<0)MOTOR_X.move(0);
+	if (!x1)
+		if (MOTOR_X.distanceToGo()>0)MOTOR_X.move(0);
+	if (!y0)
+		if (MOTOR_Y.distanceToGo()<0)MOTOR_Y.move(0);
+	if (!y1)
+		if (MOTOR_Y.distanceToGo()>0)MOTOR_Y.move(0);
+
+	x0_old = x0;
+	y0_old = y0;
+
+}
 Stepp_motorClass Stepp_motor;
 

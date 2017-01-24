@@ -43,25 +43,38 @@ void KeypadClass::get_status()
 	//if (digitalRead(28)) pad_4 = 0;else pad_4 = 1;
 	//if (digitalRead(27)) pad_7 = 0;else pad_7 = 1;
 	//if (digitalRead(26)) pad_x = 0;else pad_x = 1;
-	PORTA = B11110111;//処理軽量化のためこっちの書き方にする
+	
+	//cbi(PORTA, 3);
+	//sbi(PORTA, 2);
+	//sbi(PORTA, 1);
+	//sbi(PORTA, 0);
+
+	//PORTA &= ~(_BV(3));    //PORTAの 3bitをげる
+	//PORTA |= _BV(0) | _BV(1) | _BV(2);    //PORTAの 0~2bit を 同時に 立てる
+
 	//PORTA &= ~_BV(3);//low
 	//PORTA |= _BV(2);//high
 	//PORTA |= _BV(1);
 	//PORTA |= _BV(0);
-	if (PINA & _BV(7)) pad_1 = 0;else pad_1 = 1;
-	if (PINA & _BV(6)) pad_4 = 0;else pad_4 = 1;
-	if (PINA & _BV(5)) pad_7 = 0;else pad_7 = 1;
+
+	PORTA = B11110111;//処理軽量化のためこっちの書き方にする
+	if (PINA & _BV(7)) pad_1 = 0; else pad_1 = 1;
+	if (PINA & _BV(6)) pad_4 = 0; else pad_4 = 1;
+	if (PINA & _BV(5)) pad_7 = 0; else pad_7 = 1;
 	if (PINA & _BV(4)) pad_x = 0;else pad_x = 1;
 
 	//digitalWrite(25, HIGH);
 	//digitalWrite(24, LOW);
 	//digitalWrite(23, HIGH);
 	//digitalWrite(22, HIGH);
-	PORTA = B11111011;
+	
 	//PORTA |= _BV(3);
 	//PORTA &= ~_BV(2);
 	//PORTA |= _BV(1);
 	//PORTA |= _BV(0);
+	//PORTA &= ~(_BV(2));
+	//PORTA |= _BV(0) | _BV(1) | _BV(3);
+	PORTA = B11111011;
 	if (PINA & _BV(7))pad_2 = 0; else pad_2 = 1;
 	if (PINA & _BV(6))pad_5 = 0; else pad_5 = 1;
 	if (PINA & _BV(5))pad_8 = 0; else pad_8 = 1;
@@ -71,11 +84,14 @@ void KeypadClass::get_status()
 	//digitalWrite(24, HIGH);
 	//digitalWrite(23, LOW);
 	//digitalWrite(22, HIGH);
-	PORTA = B11111101;
+	
 	//PORTA |= _BV(3);
 	//PORTA |= _BV(2);
 	//PORTA &= ~_BV(1);
 	//PORTA |= _BV(0);
+	//PORTA &= ~(_BV(1));
+	//PORTA |= _BV(0) | _BV(2) | _BV(3);
+	PORTA = B11111101;
 	if (PINA & _BV(7))pad_3 = 0; else pad_3 = 1;
 	if (PINA & _BV(6))pad_6 = 0; else pad_6 = 1;
 	if (PINA & _BV(5))pad_9 = 0; else pad_9 = 1;
@@ -85,17 +101,20 @@ void KeypadClass::get_status()
 	//digitalWrite(24, HIGH);
 	//digitalWrite(23, HIGH);
 	//digitalWrite(22, LOW);
-	PORTA = B11111110;
+
 	//PORTA |= _BV(3);
 	//PORTA |= _BV(2);
 	//PORTA |= _BV(1);
 	//PORTA &= ~_BV(0);
+	//PORTA &= ~(_BV(0));
+	//PORTA |= _BV(1) | _BV(2) | _BV(3);
+	PORTA = B11111110;
 	if (PINA & _BV(7))pad_A = 0; else pad_A = 1;//出力をBV使った書き方だとなぜかここに入らずに1に入る
 	if (PINA & _BV(6))pad_B = 0; else pad_B = 1;
 	if (PINA & _BV(5))pad_C = 0; else pad_C = 1;
 	if (PINA & _BV(4))pad_D = 0; else pad_D = 1;
 
-	//123Aの列だけがずれるので修正．まじでわけわからん->PORTA=B...の書き方のとき発生していた
+	//123Aの列だけがずれるので修正．わけわかめ
 	bool buff=pad_1;
 	pad_1 = pad_2;
 	pad_2 = pad_3;

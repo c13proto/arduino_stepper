@@ -35,7 +35,7 @@ void mode_update()
 	else
 	{
 		DRIVER_Z_ON;
-		if (SW_STATE) 
+		if (SLIDE_SW)
 		{
 			DRIVER_XY_OFF;
 			DRIVER_STATE = 1;
@@ -132,7 +132,7 @@ void loop()//デバッグ系の処理をこっちに(重いから)
 
 }
 void driver_state_view()
-{
+{//駆動中のモータに*を表示
 	switch (DRIVER_STATE)
 	{
 		case 0:break;
