@@ -121,218 +121,35 @@ void KeypadClass::get_status()
 	pad_3 = pad_A;
 	pad_A = buff;
 
-	if (pad_0 == 1)
-	{
-		if (PAD_0 == 0)
-			PAD_0 = 1;
-		else if (PAD_0 == 1)
-			PAD_0 = 2;
-	}
-	else
-	{
-		if (PAD_0 == 1 ||
-			PAD_0 == 2)
-			PAD_0 = 3;
-		else PAD_0 = 0;
-	}
-
-	if(	pad_1==1)
-	{
-		if (PAD_1 == 0)
-			PAD_1 = 1;
-		else if (PAD_1 == 1)
-			PAD_1 = 2;
-	}
-	else
-	{
-		 if (PAD_1 == 1 || 
-		 	 PAD_1 == 2)
-		 	 PAD_1 = 3;
-		else PAD_1 = 0;
-	}
-
-	if  (pad_2 == 1){
-	 if (PAD_2 == 0)
-		 PAD_2 = 1;
-	 else if (PAD_2 == 1)
-		 PAD_2 = 2;
-	}
-	else{
-	 if (PAD_2 == 1 ||
-		 PAD_2 == 2)
-		 PAD_2 = 3;
-	else PAD_2 = 0;
-	}
-	if (pad_3 == 1) {
-		if (PAD_3 == 0)
-			PAD_3 = 1;
-		else if (PAD_3 == 1)
-			PAD_3 = 2;
-	}
-	else {
-		if (PAD_3 == 1 ||
-			PAD_3 == 2)
-			PAD_3 = 3;
-		else PAD_3 = 0;
-	}
-
-	if (pad_4 == 1) {
-		if (PAD_4 == 0)
-			PAD_4 = 1;
-		else if (PAD_4 == 1)
-			PAD_4 = 2;
-	}
-	else {
-		if (PAD_4 == 1 ||
-			PAD_4 == 2)
-			PAD_4 = 3;
-		else PAD_4 = 0;
-	}
-
-	if (pad_5 == 1) {
-		if (PAD_5 == 0)
-			PAD_5 = 1;
-		else if (PAD_5 == 1)
-			PAD_5 = 2;
-	}
-	else {
-		if (PAD_5 == 1 ||
-			PAD_5 == 2)
-			PAD_5 = 3;
-		else PAD_5 = 0;
-	}
-
-	if (pad_6 == 1) {
-		if (PAD_6 == 0)
-			PAD_6 = 1;
-		else if (PAD_6 == 1)
-			PAD_6 = 2;
-	}
-	else {
-		if (PAD_6 == 1 ||
-			PAD_6 == 2)
-			PAD_6 = 3;
-		else PAD_6 = 0;
-	}
-
-	if (pad_7 == 1) {
-		if (PAD_7 == 0)
-			PAD_7 = 1;
-		else if (PAD_7 == 1)
-			PAD_7 = 2;
-	}
-	else {
-		if (PAD_7 == 1 ||
-			PAD_7 == 2)
-			PAD_7 = 3;
-		else PAD_7 = 0;
-	}
-
-	if (pad_8 == 1) {
-		if (PAD_8 == 0)
-			PAD_8 = 1;
-		else if (PAD_8 == 1)
-			PAD_8 = 2;
-	}
-	else {
-		if (PAD_8 == 1 ||
-			PAD_8 == 2)
-			PAD_8 = 3;
-		else PAD_8 = 0;
-	}
-
-	if (pad_9 == 1) {
-		if (PAD_9 == 0)
-			PAD_9 = 1;
-		else if (PAD_9 == 1)
-			PAD_9 = 2;
-	}
-	else {
-		if (PAD_9 == 1 ||
-			PAD_9 == 2)
-			PAD_9 = 3;
-		else PAD_9 = 0;
-	}
-
-	if (pad_A == 1) {
-		if (PAD_A == 0)
-			PAD_A = 1;
-		else if (PAD_A == 1)
-			PAD_A = 2;
-	}
-	else {
-		if (PAD_A == 1 ||
-			PAD_A == 2)
-			PAD_A = 3;
-		else PAD_A = 0;
-	}
-
-	if (pad_B == 1) {
-		if (PAD_B == 0)
-			PAD_B = 1;
-		else if (PAD_B == 1)
-			PAD_B = 2;
-	}
-	else {
-		if (PAD_B == 1 ||
-			PAD_B == 2)
-			PAD_B = 3;
-		else PAD_B = 0;
-	}
-
-	if (pad_C == 1) {
-		if (PAD_C == 0)
-			PAD_C = 1;
-		else if (PAD_C == 1)
-			PAD_C = 2;
-	}
-	else {
-		if (PAD_C == 1 ||
-			PAD_C == 2)
-			PAD_C = 3;
-		else PAD_C = 0;
-	}
-
-	if (pad_D == 1) {
-		if (PAD_D == 0)
-			PAD_D = 1;
-		else if (PAD_D == 1)
-			PAD_D = 2;
-	}
-	else {
-		if (PAD_D == 1 ||
-			PAD_D == 2)
-			PAD_D = 3;
-		else PAD_D = 0;
-	}
-
-	if (pad_s == 1) {
-		if (PAD_s == 0)
-			PAD_s = 1;
-		else if (PAD_s == 1)
-			PAD_s = 2;
-	}
-	else {
-		if (PAD_s == 1 ||
-			PAD_s == 2)
-			PAD_s = 3;
-		else PAD_s = 0;
-	}
-
-	if (pad_x == 1) {
-		if (PAD_x == 0)
-				PAD_x = 1;
-		else if (PAD_x == 1)
-			PAD_x = 2;
-	}
-	else {
-		if (PAD_x == 1 ||
-			PAD_x == 2)
-			PAD_x = 3;
-		else PAD_x = 0;
-	}
+	input_pad_state(&PAD_1, pad_1);//HOLD,PRESSED,RELEASED‚Ì”»’è
+	input_pad_state(&PAD_2, pad_2);
+	input_pad_state(&PAD_3, pad_3);
+	input_pad_state(&PAD_4, pad_4);
+	input_pad_state(&PAD_5, pad_5);
+	input_pad_state(&PAD_6, pad_6);
+	input_pad_state(&PAD_7, pad_7);
+	input_pad_state(&PAD_8, pad_8);
+	input_pad_state(&PAD_9, pad_9);
+	input_pad_state(&PAD_0, pad_0);
+	input_pad_state(&PAD_A, pad_A);
+	input_pad_state(&PAD_B, pad_B);
+	input_pad_state(&PAD_C, pad_C);
+	input_pad_state(&PAD_D, pad_D);
+	input_pad_state(&PAD_x, pad_x);
+	input_pad_state(&PAD_s, pad_s);
 
 	PRESSED_KEY = get_pressed_key();
+}
+void  KeypadClass::input_pad_state(int *PAD,int pad)
+{
+	if (pad == 1) {
+		if (*PAD == NONE)*PAD = PRESSED;
+		else if (*PAD == PRESSED)*PAD = HOLD;
+	}
+	else {
+		if (*PAD == PRESSED ||*PAD == HOLD)*PAD = RELEASED;
+		else *PAD = NONE;
+	}
 }
 
 void KeypadClass::serial_debug()

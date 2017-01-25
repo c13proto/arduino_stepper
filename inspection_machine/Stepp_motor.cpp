@@ -44,9 +44,9 @@ void Stepp_motorClass::init()
 	//MOTOR_X.setSpeed(1000);//runSpeed()で出力
 	//MOTOR_Y.setSpeed(1000);
 	//MOTOR_Z.setSpeed(1000);
-	MOTOR_X.setAcceleration(10000);
-	MOTOR_Y.setAcceleration(10000);
-	MOTOR_Z.setAcceleration(10000);
+	MOTOR_X.setAcceleration(5000);
+	MOTOR_Y.setAcceleration(5000);
+	MOTOR_Z.setAcceleration(5000);
 }
 
 void Stepp_motorClass::stepp_master_ctrl()
@@ -62,7 +62,7 @@ void Stepp_motorClass::master_pad_controller_ctrl(int xy,int z)
 {
 	if (SET_POS_MODE == 0)
 	{
-		//あとからのmove(0)が効かないのでリミット条件をここに書いている
+		//同じloopでmove()指定したあとからのstop()が効かないのでリミット条件をここに書いている
 		if ( PAD_6 ==HOLD && LIMIT_X1)MOTOR_X.move(xy);
 		if ((PAD_4 ==HOLD || PAD_5 == HOLD) && LIMIT_X0)MOTOR_X.move(-xy);//5ボタンはxyを初期位置に移動
 		if ( PAD_2 ==HOLD && LIMIT_Y1)MOTOR_Y.move(xy);
@@ -70,13 +70,13 @@ void Stepp_motorClass::master_pad_controller_ctrl(int xy,int z)
 		if ( PAD_3 ==HOLD )MOTOR_Z.move(z);
 		if  (PAD_1 ==HOLD )MOTOR_Z.move(-z);
 
-		if (PAD_4 == RELEASED || PAD_6 == RELEASED)MOTOR_X.move(0);//ボタン離されたらその位置に止める
-		if (PAD_2 == RELEASED || PAD_8 == RELEASED)MOTOR_Y.move(0);
-		if (PAD_1 == RELEASED || PAD_3 == RELEASED)MOTOR_Z.move(0);
+		if (PAD_4 == RELEASED || PAD_6 == RELEASED)MOTOR_X.stop();//ボタン離されたら止める
+		if (PAD_2 == RELEASED || PAD_8 == RELEASED)MOTOR_Y.stop();
+		if (PAD_1 == RELEASED || PAD_3 == RELEASED)MOTOR_Z.stop();
 		if (PAD_5 == RELEASED)
 		{
-			MOTOR_X.move(0);
-			MOTOR_Y.move(0);
+			MOTOR_X.stop();
+			MOTOR_Y.stop();
 		}
 	}									  
 }
@@ -102,7 +102,7 @@ void Stepp_motorClass::X_master_input_ctrl()
 			{
 				if (MOTOR_POS_SET.length() != 0)
 					MOTOR_X.moveTo(MOTOR_POS_SET.toInt());//空文字じゃなければ
-				else MOTOR_X.move(0);//空文字なら動かない
+				else MOTOR_X.stop();//空文字なら動かないor止める
 			}
 			SET_POS_MODE = 0;
 			MOTOR_POS_SET = "";
@@ -131,7 +131,7 @@ void Stepp_motorClass::Y_master_input_ctrl()
 			{
 				if (MOTOR_POS_SET.length() != 0)
 					MOTOR_Y.moveTo(MOTOR_POS_SET.toInt());//空文字じゃなければ
-				else MOTOR_Y.move(0);//空文字なら動かない
+				else MOTOR_Y.stop();//空文字なら動かない
 			}
 			SET_POS_MODE = 0;
 			MOTOR_POS_SET = "";
@@ -160,13 +160,14 @@ void Stepp_motorClass::Z_master_input_ctrl()
 			{
 				if(MOTOR_POS_SET.length() != 0)
 					MOTOR_Z.moveTo(MOTOR_POS_SET.toInt());//空文字じゃなければ
-				else MOTOR_Z.move(0);//空文字なら動かない
+				else MOTOR_Z.stop();//空文字なら動かない
 			}
 			SET_POS_MODE = 0;
 			MOTOR_POS_SET = "";
 		}
 	}
 }
+
 void Stepp_motorClass::stepp_slave_ctrl(String command)
 {
 	static String command_old = "";
@@ -281,13 +282,13 @@ void Stepp_motorClass::limit_ctrl()
 
 	//1loopでの2度めの呼び出しは無視されるらしいので，手動のリミットは効かない
 	if (!x0)
-		if (MOTOR_X.distanceToGo()<0)MOTOR_X.move(0);
+		if (MOTOR_X.distanceToGo()<0)MOTOR_X.stop();
 	if (!x1)
-		if (MOTOR_X.distanceToGo()>0)MOTOR_X.move(0);
+		if (MOTOR_X.distanceToGo()>0)MOTOR_X.stop();
 	if (!y0)
-		if (MOTOR_Y.distanceToGo()<0)MOTOR_Y.move(0);
+		if (MOTOR_Y.distanceToGo()<0)MOTOR_Y.stop();
 	if (!y1)
-		if (MOTOR_Y.distanceToGo()>0)MOTOR_Y.move(0);
+		if (MOTOR_Y.distanceToGo()>0)MOTOR_Y.stop();
 
 	x0_old = x0;
 	y0_old = y0;

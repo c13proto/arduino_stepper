@@ -13,11 +13,10 @@ void timer_interrupt() {//メインの操作系の処理こっち
 
 	Keypad.get_status();//pad状態更新	
 	mode_update();//CTRL_MODE更新
-	AD4 = analogRead(4);
 	//stepper
 	if (CTRL_MODE == MODE_MASTER)master_ctrl();
 	if (CTRL_MODE == MODE_SLAVE)slave_ctrl();
-
+	AD4 = analogRead(4);
 }
 void mode_update()
 {
@@ -94,23 +93,23 @@ void command_update()
 	}
 }
 
-// Define various ADC prescaler
-const unsigned char PS_16 = (1 << ADPS2);
-const unsigned char PS_32 = (1 << ADPS2) | (1 << ADPS0);
-const unsigned char PS_64 = (1 << ADPS2) | (1 << ADPS1);
-const unsigned char PS_128 = (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
 void setup()
 {
 	Keypad.init();
 	OLED.init();
 	Stepp_motor.init();
 	
-	// set up the ADC
-	ADCSRA &= ~PS_128;  // remove bits set by Arduino library
+	// Set the Prescaler to 16 (16000KHz/16 = 1MHz)
+	// WARNING: Above 200KHz 10-bit results are not reliable.
+	//ADCSRA |= B00000100;
+	cbi(ADCSRA, ADPS2);//8分周にしてみる
+	sbi(ADCSRA, ADPS1);
+	sbi(ADCSRA, ADPS0);
 
-						// you can choose a prescaler from above.
-						// PS_16, PS_32, PS_64 or PS_128
-	ADCSRA |= PS_16;    // adcを16分周に変更
+	// Set ADIE in ADCSRA (0x7A) to enable the ADC interrupt.
+	// Without this, the internal interrupt will not trigger.
+	//ADCSRA |= B00001000;
+	//sbi(ADCSRA, ADIE);
 
 	FlexiTimer2::set(TIMER2_INTERVAL, timer_interrupt);
 	FlexiTimer2::start();

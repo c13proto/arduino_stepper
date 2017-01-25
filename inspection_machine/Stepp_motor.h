@@ -71,7 +71,6 @@ class Stepp_motorClass
 	void stepp_master_ctrl();
 	void stepp_slave_ctrl(String);
 	void motors_stop();
-	
 };
 
 
