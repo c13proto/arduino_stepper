@@ -100,8 +100,11 @@ void Stepp_motorClass::X_master_input_ctrl()
 		{
 			if (isFloat(MOTOR_POS_SET))
 			{
-				if (MOTOR_POS_SET.length() != 0)
-					MOTOR_X.moveTo(MOTOR_POS_SET.toInt());//空文字じゃなければ
+				if (MOTOR_POS_SET.length() != 0)//空文字じゃなければ
+				{
+					if (MOTOR_POS_SET.equals("000"))MOTOR_X.setCurrentPosition(0);//000のときのみ現在位置を0にする
+					else MOTOR_X.moveTo(MOTOR_POS_SET.toInt());
+				}
 				else MOTOR_X.stop();//空文字なら動かないor止める
 			}
 			SET_POS_MODE = 0;
@@ -129,8 +132,11 @@ void Stepp_motorClass::Y_master_input_ctrl()
 		{
 			if (isFloat(MOTOR_POS_SET))
 			{
-				if (MOTOR_POS_SET.length() != 0)
-					MOTOR_Y.moveTo(MOTOR_POS_SET.toInt());//空文字じゃなければ
+				if (MOTOR_POS_SET.length() != 0)//空文字じゃなければ
+				{
+					if (MOTOR_POS_SET.equals("000"))MOTOR_Y.setCurrentPosition(0);//000のときのみ現在位置を0にする
+					else MOTOR_Y.moveTo(MOTOR_POS_SET.toInt());
+				}
 				else MOTOR_Y.stop();//空文字なら動かない
 			}
 			SET_POS_MODE = 0;
@@ -158,8 +164,11 @@ void Stepp_motorClass::Z_master_input_ctrl()
 		{
 			if (isFloat(MOTOR_POS_SET))
 			{
-				if(MOTOR_POS_SET.length() != 0)
-					MOTOR_Z.moveTo(MOTOR_POS_SET.toInt());//空文字じゃなければ
+				if (MOTOR_POS_SET.length() != 0)//空文字じゃなければ
+				{
+					if(MOTOR_POS_SET.equals("000"))MOTOR_Z.setCurrentPosition(0);//000のときのみ現在位置を0にする
+					else MOTOR_Z.moveTo(MOTOR_POS_SET.toInt());
+				}
 				else MOTOR_Z.stop();//空文字なら動かない
 			}
 			SET_POS_MODE = 0;
@@ -191,7 +200,7 @@ void Stepp_motorClass::X_slave_ctrl(String command)
 	{
 		String val = command;
 		val.replace("Vx", "");
-		if (isFloat(val)) MOTOR_X.setMaxSpeed(val.toInt());
+		if (isFloat(val)) MOTOR_X.setMaxSpeed(val.toInt());//速度変更
 	}
 	if (command.startsWith("X"))
 	{
@@ -199,6 +208,7 @@ void Stepp_motorClass::X_slave_ctrl(String command)
 		val.replace("X", "");
 		if (isFloat(val)) MOTOR_X.moveTo(val.toInt());//目標位置の指定．MOTOR_X.run()で動く
 	}
+	if (command.equals("CLEAR_X"))MOTOR_X.setCurrentPosition(0);//現在位置を0にすると同時に止まる(ライブラリの仕様上)
 	if (command.equals("STOP_X") || command.equals("STOP"))MOTOR_X.stop();//止まる位置に目標座標を変更
 
 
@@ -217,6 +227,7 @@ void Stepp_motorClass::Y_slave_ctrl(String command)
 		val.replace("Y", "");
 		if (isFloat(val)) MOTOR_Y.moveTo(val.toInt());
 	}
+	if (command.equals("CLEAR_Y"))MOTOR_Y.setCurrentPosition(0);
 	if (command.equals("STOP_Y") || command.equals("STOP"))MOTOR_Y.stop();
 
 
@@ -235,6 +246,7 @@ void Stepp_motorClass::Z_slave_ctrl(String command)
 		val.replace("Z", "");
 		if (isFloat(val)) MOTOR_Z.moveTo(val.toInt());
 	}
+	if(command.equals("CLEAR_Z"))MOTOR_Z.setCurrentPosition(0);
 	if (command.equals("STOP_Z") || command.equals("STOP"))MOTOR_Z.stop();
 
 
