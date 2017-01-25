@@ -1,4 +1,4 @@
-[予備用]
+[回転]
 0.33A phase(モータの定格電流)
 Current Limit =0.33*0.7=0.231[A](1/32ステップでは70%)
 Vref=Current Limit/2=0.1655[V]

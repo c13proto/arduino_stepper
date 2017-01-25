@@ -41,9 +41,14 @@ extern AccelStepper MOTOR_X;
 extern AccelStepper MOTOR_Y;
 extern AccelStepper MOTOR_Z;
 extern int			SET_POS_MODE;//master_ctrlで設定しているモータ
+#define MODE_X 1
+#define MODE_Y 2
+#define MODE_Z 3
 extern String		MOTOR_POS_SET;
 extern int		DRIVER_STATE;//
-
+#define STATE_OFF_OFF	0//xy=off z=off
+#define STATE_OFF_ON	1
+#define STATE_ON_ON		2
 class Stepp_motorClass
 {
  protected://クラス内で呼び出すやつ

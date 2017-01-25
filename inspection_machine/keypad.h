@@ -9,9 +9,14 @@
 	#include "WProgram.h"
 #endif
 
-#define cbi(PIN,bit)     PIN &= ~(1<<bit)//PINのbit番目をLowに
-#define sbi(PIN,bit)     PIN |=  (1<<bit)//PINのbit番目をHighに
-#define ibi(PIN,bit)	bit_is_set(PIN, bit)//PINのbitがLOWなら0を返す。Highなら0以外を返す
+#define cbi(PIN,bit)     PIN &= ~(1<<bit)//digitalWrite(PIN,0)の代わり．PINのbit番目をLowに
+#define sbi(PIN,bit)     PIN |=  (1<<bit)//digitalWrite(PIN,1)の代わり．PINのbit番目をHighに
+#define ibi(PIN,bit)	bit_is_set(PIN, bit)//digitalRead(PIN)の代わり．PINのbitがLOWなら0を，Highなら1を返す
+
+#define PRESSED  1
+#define HOLD	 2
+#define RELEASED 3
+
 class KeypadClass
 {
  protected:

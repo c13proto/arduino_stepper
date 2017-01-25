@@ -3,34 +3,33 @@
 #include "Stepp_motor.h"
 
 #include <FlexiTimer2.h>//タイマ割り込み（Timer2を使うので9,10からPWM出せなくなる）
-#define TIMER2_INTERVAL (float)1//[ms](これより細かくしても変わらないかも)
+int AD4;//analogRead(4);
+int CTRL_MODE = 0;
 #define MODE_SLEEP 0
 #define MODE_MASTER 1
 #define MODE_SLAVE 2
-int CTRL_MODE = MODE_SLEEP;
-int AD8;//analogRead(8);
+#define TIMER2_INTERVAL (float)0.2//[ms](1000pulse/sec以上の割り込みが望ましいかな)
 void timer_interrupt() {//メインの操作系の処理こっち
 
 	Keypad.get_status();//pad状態更新	
 	mode_update();//CTRL_MODE更新
-	AD8 = analogRead(8);
+	AD4 = analogRead(4);
 	//stepper
 	if (CTRL_MODE == MODE_MASTER)master_ctrl();
 	if (CTRL_MODE == MODE_SLAVE)slave_ctrl();
-
 
 }
 void mode_update()
 {
 	static char mode_old;
-	if (PAD_D == 1)CTRL_MODE++;
-	if (CTRL_MODE > 2)CTRL_MODE = MODE_SLEEP;
+	if (PAD_D == PRESSED)CTRL_MODE++;
+	if (CTRL_MODE > MODE_SLAVE)CTRL_MODE = MODE_SLEEP;
 
 	if (CTRL_MODE == MODE_SLEEP) 
 	{
 		DRIVER_Z_OFF;
 		DRIVER_XY_OFF; 
-		DRIVER_STATE = 0;
+		DRIVER_STATE = STATE_OFF_OFF;
 	}
 	else
 	{
@@ -38,12 +37,12 @@ void mode_update()
 		if (SLIDE_SW)
 		{
 			DRIVER_XY_OFF;
-			DRIVER_STATE = 1;
+			DRIVER_STATE = STATE_OFF_ON;
 		}
 		else
 		{
 			DRIVER_XY_ON;
-			DRIVER_STATE = 2;
+			DRIVER_STATE = STATE_ON_ON;
 		}
 	}
 
@@ -94,11 +93,24 @@ void command_update()
 		}
 	}
 }
+
+// Define various ADC prescaler
+const unsigned char PS_16 = (1 << ADPS2);
+const unsigned char PS_32 = (1 << ADPS2) | (1 << ADPS0);
+const unsigned char PS_64 = (1 << ADPS2) | (1 << ADPS1);
+const unsigned char PS_128 = (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
 void setup()
 {
 	Keypad.init();
 	OLED.init();
 	Stepp_motor.init();
+	
+	// set up the ADC
+	ADCSRA &= ~PS_128;  // remove bits set by Arduino library
+
+						// you can choose a prescaler from above.
+						// PS_16, PS_32, PS_64 or PS_128
+	ADCSRA |= PS_16;    // adcを16分周に変更
 
 	FlexiTimer2::set(TIMER2_INTERVAL, timer_interrupt);
 	FlexiTimer2::start();
@@ -120,7 +132,7 @@ void loop()//デバッグ系の処理をこっちに(重いから)
 		driver_state_view();//モタドラ駆動してるかどうか
 
 		//AD表示
-		sprintf(buf, "%d", AD8);
+		sprintf(buf, "%d", AD4);
 		u8g.drawStr(2, 50, buf);
 
 		//COMMAND
@@ -129,17 +141,16 @@ void loop()//デバッグ系の処理をこっちに(重いから)
 
 	} while (u8g.nextPage());
 
-
 }
 void driver_state_view()
 {//駆動中のモータに*を表示
 	switch (DRIVER_STATE)
 	{
-		case 0:break;
-		case 1:
+		case STATE_OFF_OFF:break;
+		case STATE_OFF_ON:
 			u8g.drawStr(110, 40, "*");//z駆動中
 			break;
-		case 2:
+		case STATE_ON_ON:
 			u8g.drawStr(110, 20, "*");//x駆動中
 			u8g.drawStr(110, 30, "*");//y駆動中
 			u8g.drawStr(110, 40, "*");//z駆動中
@@ -149,9 +160,9 @@ void driver_state_view()
 }
 void mode_view()
 {
-	if (CTRL_MODE == 0)u8g.drawStr(45, 10, "SLEEP");
-	else if (CTRL_MODE == 1)u8g.drawStr(45, 10, "MASTER");
-	else if (CTRL_MODE == 2)u8g.drawStr(45, 10, "SLAVE");
+	if (CTRL_MODE == MODE_SLEEP)u8g.drawStr(45, 10, "SLEEP");
+	else if (CTRL_MODE == MODE_MASTER)u8g.drawStr(45, 10, "MASTER");
+	else if (CTRL_MODE == MODE_SLAVE)u8g.drawStr(45, 10, "SLAVE");
 }
 void pos_view()
 {
@@ -168,7 +179,7 @@ void pos_view()
 		u8g.drawStr(2, 40, "Z:");
 		u8g.drawStr(17, 40, buf);
 	}
-	else if (SET_POS_MODE == 1)
+	else if (SET_POS_MODE == MODE_X)
 	{
 		u8g.drawStr(2, 20, "X->");
 		str_to_char_array(MOTOR_POS_SET, buf, COMMAND_LENGTH);
@@ -182,7 +193,7 @@ void pos_view()
 		u8g.drawStr(2, 40, "Z:");
 		u8g.drawStr(17, 40, buf);
 	}
-	else if (SET_POS_MODE == 2)
+	else if (SET_POS_MODE == MODE_Y)
 	{
 		sprintf(buf, "%ld", MOTOR_X.currentPosition());
 		u8g.drawStr(2, 20, "X:");
@@ -197,7 +208,7 @@ void pos_view()
 		u8g.drawStr(2, 40, "Z:");
 		u8g.drawStr(17, 40, buf);
 	}
-	else if (SET_POS_MODE == 3)
+	else if (SET_POS_MODE == MODE_Z)
 	{
 		sprintf(buf, "%ld", MOTOR_X.currentPosition());
 		u8g.drawStr(2, 20, "X:");
