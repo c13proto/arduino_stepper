@@ -1,16 +1,15 @@
-// 
-// 
-// 
 #include "Stepp_motor.h"
 #include "keypad.h"
 AccelStepper MOTOR_X;
 AccelStepper MOTOR_Y;
 AccelStepper MOTOR_Z;
-
+int AD4;
+int CTRL_MODE;
 int SET_POS_MODE;//master_ctrlで設定しているモータ(x,y,z)=(1,2,3)
 String MOTOR_POS_SET;
 int DRIVER_STATE;
-
+bool COMMAND_RECIEVE_FLAG;
+String SLAVE_COMMAND;
 void Stepp_motorClass::init()
 {
 	pinMode(PIN_ENABLE_XY, OUTPUT);
@@ -34,9 +33,12 @@ void Stepp_motorClass::init()
 	MOTOR_Y = AccelStepper(AccelStepper::DRIVER, PIN_STEP_Y, PIN_DIR_Y);
 	MOTOR_Z = AccelStepper(AccelStepper::DRIVER, PIN_STEP_Z, PIN_DIR_Z);
 	
-	SET_POS_MODE = 0;//master_ctrlで設定しているモータx:1 y:2 z:3
+	CTRL_MODE = MODE_SLEEP;
+	SET_POS_MODE = NONE;//master_ctrlで設定しているモータx:1 y:2 z:3
 	MOTOR_POS_SET = "";
-	DRIVER_STATE = 0;//ドライバを有効にしてるかどうか．z xy= 0:off off 1:on off 2:on on
+	DRIVER_STATE = STATE_OFF_OFF;//ドライバを有効にしてるかどうか．z xy= 0:off off 1:on off 2:on on
+	COMMAND_RECIEVE_FLAG = false;
+	SLAVE_COMMAND="no command";
 
 	MOTOR_X.setMaxSpeed(1000);//[puls/sec] accelstepperでは1000は超えない設計をしているらしい(正の数を代入)
 	MOTOR_Y.setMaxSpeed(1000);//1000以上の数を入れると変な動作するときあり
@@ -49,10 +51,13 @@ void Stepp_motorClass::init()
 	MOTOR_Z.setAcceleration(5000);
 }
 
-void Stepp_motorClass::stepp_master_ctrl()
+void Stepp_motorClass::master_ctrl()
 {
-	X_master_input_ctrl();
-	Y_master_input_ctrl();
+	if (DRIVER_STATE == STATE_ON_ON)
+	{
+		X_master_input_ctrl();
+		Y_master_input_ctrl();
+	}
 	Z_master_input_ctrl();
 	master_pad_controller_ctrl(500,500);
 
@@ -63,10 +68,12 @@ void Stepp_motorClass::master_pad_controller_ctrl(int xy,int z)
 	if (SET_POS_MODE == 0)
 	{
 		//同じloopでmove()指定したあとからのstop()が効かないのでリミット条件をここに書いている
-		if ( PAD_6 ==HOLD && LIMIT_X1)MOTOR_X.move(xy);
-		if ((PAD_4 ==HOLD || PAD_5 == HOLD) && LIMIT_X0)MOTOR_X.move(-xy);//5ボタンはxyを初期位置に移動
-		if ( PAD_2 ==HOLD && LIMIT_Y1)MOTOR_Y.move(xy);
-		if ((PAD_8 ==HOLD || PAD_5 == HOLD) && LIMIT_Y0)MOTOR_Y.move(-xy);
+		if (DRIVER_STATE == STATE_ON_ON) {
+			if (PAD_6 == HOLD && LIMIT_X1)MOTOR_X.move(xy);
+			if ((PAD_4 == HOLD || PAD_5 == HOLD) && LIMIT_X0)MOTOR_X.move(-xy);//5ボタンはxyを初期位置に移動
+			if (PAD_2 == HOLD && LIMIT_Y1)MOTOR_Y.move(xy);
+			if ((PAD_8 == HOLD || PAD_5 == HOLD) && LIMIT_Y0)MOTOR_Y.move(-xy);
+		}
 		if ( PAD_3 ==HOLD )MOTOR_Z.move(z);
 		if  (PAD_1 ==HOLD )MOTOR_Z.move(-z);
 
@@ -177,22 +184,19 @@ void Stepp_motorClass::Z_master_input_ctrl()
 	}
 }
 
-void Stepp_motorClass::stepp_slave_ctrl(String command)
+void Stepp_motorClass::slave_ctrl()
 {
-	static String command_old = "";
-
-	if (!command.equals(command_old))//コマンドが同じ場合はスキップ(これやらないとクソ重かった)
+	command_update();
+	if (COMMAND_RECIEVE_FLAG)//コマンド受信時のみ動作
 	{
-		String command_trim = command;
-		command_trim.replace(" ", "");//スペースなくす
-		X_slave_ctrl(command_trim);
-		Y_slave_ctrl(command_trim);
-		Z_slave_ctrl(command_trim);
+		SLAVE_COMMAND.trim();//スペースなくす
+		if (DRIVER_STATE == STATE_ON_ON) {
+			X_slave_ctrl(SLAVE_COMMAND);
+			Y_slave_ctrl(SLAVE_COMMAND);
+		}
+		Z_slave_ctrl(SLAVE_COMMAND);
 	}
-	command_old = command;
-
 	motors_run();
-
 }
 void Stepp_motorClass::X_slave_ctrl(String command)
 {
@@ -200,13 +204,13 @@ void Stepp_motorClass::X_slave_ctrl(String command)
 	{
 		String val = command;
 		val.replace("Vx", "");
-		if (isFloat(val)) MOTOR_X.setMaxSpeed(val.toInt());//速度変更
+		if (isFloat(val))MOTOR_X.setMaxSpeed(val.toInt());//速度変更
 	}
 	if (command.startsWith("X"))
 	{
 		String val = command;
 		val.replace("X", "");
-		if (isFloat(val)) MOTOR_X.moveTo(val.toInt());//目標位置の指定．MOTOR_X.run()で動く
+		if (isFloat(val))MOTOR_X.moveTo(val.toInt());//目標位置の指定．MOTOR_X.run()で動く
 	}
 	if (command.equals("CLEAR_X"))MOTOR_X.setCurrentPosition(0);//現在位置を0にすると同時に止まる(ライブラリの仕様上)
 	if (command.equals("STOP_X") || command.equals("STOP"))MOTOR_X.stop();//止まる位置に目標座標を変更
@@ -250,6 +254,45 @@ void Stepp_motorClass::Z_slave_ctrl(String command)
 	if (command.equals("STOP_Z") || command.equals("STOP"))MOTOR_Z.stop();
 
 
+}
+
+void Stepp_motorClass::command_update()
+{
+	static char command_buff[SLAVE_COMMAND_LENGTH];
+	static int char_counter = 0;
+
+	if (Serial.available())
+	{
+		char data = Serial.read();
+
+		if (data != ';') {//11文字目に';'を送られることでコマンドと認識させる
+			command_buff[char_counter] = data;
+			char_counter++;
+		}
+		else {
+			int i = 0;
+			if (char_counter == SLAVE_COMMAND_LENGTH)
+			{
+				SLAVE_COMMAND = "          ";//COMMAND_LENGTHぶんのスペース用意してやらないと格納してくれないみたい
+				for (i = 0; i < SLAVE_COMMAND_LENGTH; i++)SLAVE_COMMAND[i] = command_buff[i];
+				COMMAND_RECIEVE_FLAG = true;
+			}
+			else SLAVE_COMMAND = "no command";
+			char_counter = 0;
+		}
+	}
+}
+void Stepp_motorClass::mode_changed_ctrl()
+{
+	static char mode_old;
+	if (mode_old != CTRL_MODE)
+	{
+		Stepp_motor.motors_stop();//モータのポジション保持しない
+		SET_POS_MODE = NONE;//ポジションを設定していた場合はクリア
+		while (Serial.read() != -1);//モード変更時はシリアルのバッファクリア
+		SLAVE_COMMAND = "no command";//コマンドをクリア
+	}
+	mode_old = CTRL_MODE;
 }
 boolean Stepp_motorClass::isFloat(String tString) {//Stringを数値化出来るかどうか
 	String tBuf;

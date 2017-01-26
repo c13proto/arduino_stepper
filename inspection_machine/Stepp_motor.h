@@ -27,7 +27,7 @@
 #define PIN_LIMIT_Y1 	A1//本来はHold PF1
 #define PIN_ENABLE_Z	A3//本来はCoolantEnable PF3
 
-#define DRIVER_XY_ON	cbi(PORTH,5)//割り込み時に毎回呼ばれるのでこの書き方
+#define DRIVER_XY_ON	cbi(PORTH,5)//
 #define DRIVER_XY_OFF	sbi(PORTH,5)//
 #define DRIVER_Z_ON		cbi(PORTF,3)//
 #define DRIVER_Z_OFF	sbi(PORTF,3)//
@@ -37,40 +37,49 @@
 #define LIMIT_X1	ibi(PINB,5)//
 #define LIMIT_Y1	ibi(PINF,1)//
 
+//グローバル変数とDefine
+extern int AD4;
 extern AccelStepper MOTOR_X;
 extern AccelStepper MOTOR_Y;
 extern AccelStepper MOTOR_Z;
-extern int			SET_POS_MODE;//master_ctrlで設定しているモータ
+extern int CTRL_MODE;
+#define MODE_SLEEP 0
+#define MODE_MASTER 1
+#define MODE_SLAVE 2
+extern int SET_POS_MODE;//master_ctrlで設定しているモータ
 #define MODE_X 1
 #define MODE_Y 2
 #define MODE_Z 3
-extern String		MOTOR_POS_SET;
+extern String	MOTOR_POS_SET;
 extern int		DRIVER_STATE;//
 #define STATE_OFF_OFF	0//xy=off z=off
 #define STATE_OFF_ON	1
 #define STATE_ON_ON		2
+extern bool COMMAND_RECIEVE_FLAG;
+extern String SLAVE_COMMAND;
+#define SLAVE_COMMAND_LENGTH 10
+
 class Stepp_motorClass
 {
- protected://クラス内で呼び出すやつ
+ private://クラス内で呼び出す
 	 void X_master_input_ctrl();
 	 void Y_master_input_ctrl();
 	 void Z_master_input_ctrl();
 	 void master_pad_controller_ctrl(int,int);
+	 void command_update();
 	 void X_slave_ctrl(String);
 	 void Y_slave_ctrl(String);
 	 void Z_slave_ctrl(String);
-	 boolean isFloat(String);
-	 int speed_x;
-	 int speed_y;
-	 int speed_z;
+	 bool isFloat(String);
 	 void motors_run();
 	 void limit_ctrl();
+	 void motors_stop();
 
- public://メインで呼び出すやつ
+ public://メインで呼び出す
 	void init();
-	void stepp_master_ctrl();
-	void stepp_slave_ctrl(String);
-	void motors_stop();
+	void master_ctrl();
+	void slave_ctrl();
+	void mode_changed_ctrl();
 };
 
 

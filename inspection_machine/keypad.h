@@ -23,7 +23,7 @@ extern int PAD_x; extern int PAD_0; extern int PAD_s; extern int PAD_D;
 extern char PRESSED_KEY;
 class KeypadClass
 {
- protected:
+ private:
 	 char get_pressed_key();
 	 void input_pad_state(int *PAD, int pad);
 

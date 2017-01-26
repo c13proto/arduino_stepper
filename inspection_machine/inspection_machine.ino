@@ -1,27 +1,20 @@
-
 #include "keypad.h"//キーパッド．ライブラリ使うと割り込みが面倒だったので自作
 #include "OLED.h"
 #include "Stepp_motor.h"
 
 #include <FlexiTimer2.h>//タイマ割り込み（Timer2を使うので9,10からPWM出せなくなる）
-int AD4;//analogRead(4);
-int CTRL_MODE = 0;
-#define MODE_SLEEP 0
-#define MODE_MASTER 1
-#define MODE_SLAVE 2
 #define TIMER2_INTERVAL (float)0.2//[ms](1000pulse/sec以上の割り込みが望ましいかな)
 void timer_interrupt() {//メインの操作系の処理こっち
 
 	Keypad.get_status();//pad状態更新	
 	mode_update();//CTRL_MODE更新
 	//stepper
-	if (CTRL_MODE == MODE_MASTER)master_ctrl();
-	if (CTRL_MODE == MODE_SLAVE)slave_ctrl();
+	if (CTRL_MODE == MODE_MASTER)Stepp_motor.master_ctrl();
+	if (CTRL_MODE == MODE_SLAVE)Stepp_motor.slave_ctrl();
 	AD4 = analogRead(4);
 }
 void mode_update()
 {
-	static char mode_old;
 	if (PAD_D == PRESSED)CTRL_MODE++;
 	if (CTRL_MODE > MODE_SLAVE)CTRL_MODE = MODE_SLEEP;
 
@@ -38,6 +31,7 @@ void mode_update()
 		{
 			DRIVER_XY_OFF;
 			DRIVER_STATE = STATE_OFF_ON;
+
 		}
 		else
 		{
@@ -46,53 +40,9 @@ void mode_update()
 		}
 	}
 
-	if (mode_old != CTRL_MODE)
-	{
-		Stepp_motor.motors_stop();//モードが切り替わるタイミングはモータのポジション保持しない
-		SET_POS_MODE = 0;
-	}
-	mode_old = CTRL_MODE;
-}
-//マスターモードの処理
-void master_ctrl()
-{
-	Stepp_motor.stepp_master_ctrl();
+	Stepp_motor.mode_changed_ctrl();//モードが切り替わったタイミングで行いたい処理
 }
 
-//スレーブモードの処理
-const int COMMAND_LENGTH = 10;//コマンドの最大文字数
-char command_buff[COMMAND_LENGTH] = {};//
-String COMMAND = "no command";
-int char_counter = 0;
-void slave_ctrl()
-{
-	command_update();//コマンド受信
-	Stepp_motor.stepp_slave_ctrl(COMMAND);
-
-}
-void command_update()
-{
-	if (Serial.available())
-	{
-		char data = Serial.read();
-
-		//10文字+eでの判断
-		if (data != ';') {//';'を送られることでコマンドと認識させる
-			command_buff[char_counter] = data;
-			char_counter++;
-		}
-		else {
-			int i = 0;
-			if (char_counter == COMMAND_LENGTH)
-			{
-				COMMAND = "          ";//COMMAND_LENGTHぶんのスペース用意してやらないと格納してくれないみたい
-				for (i = 0; i < COMMAND_LENGTH; i++)COMMAND[i] = command_buff[i];
-			}
-			else COMMAND = "no command";
-			char_counter = 0;
-		}
-	}
-}
 
 void setup()
 {
@@ -125,7 +75,7 @@ void loop()//デバッグ系の処理をこっちに(重いから)
 		
 		//PCデバッグ(どうやらシリアル受信に影響するっぽいからあんまやらないほうがいいかも)
 		//Keypad.serial_debug();
-		char buf[COMMAND_LENGTH];
+		char buf[SLAVE_COMMAND_LENGTH];
 		
 		mode_view();//MODE表示			
 		pos_view();//pos表示	
@@ -136,7 +86,7 @@ void loop()//デバッグ系の処理をこっちに(重いから)
 		u8g.drawStr(2, 50, buf);
 
 		//COMMAND
-		str_to_char_array(COMMAND, buf, COMMAND_LENGTH);
+		str_to_char_array(SLAVE_COMMAND, buf, SLAVE_COMMAND_LENGTH);
 		u8g.drawStr(40, 50, buf);
 
 	} while (u8g.nextPage());
@@ -148,12 +98,12 @@ void driver_state_view()
 	{
 		case STATE_OFF_OFF:break;
 		case STATE_OFF_ON:
-			u8g.drawStr(110, 40, "*");//z駆動中
+			u8g.drawStr(115, 40, "*");//z駆動中
 			break;
 		case STATE_ON_ON:
-			u8g.drawStr(110, 20, "*");//x駆動中
-			u8g.drawStr(110, 30, "*");//y駆動中
-			u8g.drawStr(110, 40, "*");//z駆動中
+			u8g.drawStr(115, 20, "*");//x駆動中
+			u8g.drawStr(115, 30, "*");//y駆動中
+			u8g.drawStr(115, 40, "*");//z駆動中
 			break;
 		default:break;
 	}
@@ -166,7 +116,7 @@ void mode_view()
 }
 void pos_view()
 {
-	char buf[COMMAND_LENGTH];
+	char buf[SLAVE_COMMAND_LENGTH];
 	if (SET_POS_MODE == 0)
 	{
 		sprintf(buf, "%ld", MOTOR_X.currentPosition());
@@ -182,7 +132,7 @@ void pos_view()
 	else if (SET_POS_MODE == MODE_X)
 	{
 		u8g.drawStr(2, 20, "X->");
-		str_to_char_array(MOTOR_POS_SET, buf, COMMAND_LENGTH);
+		str_to_char_array(MOTOR_POS_SET, buf, SLAVE_COMMAND_LENGTH);
 		u8g.drawStr(25, 20, buf);
 		u8g.drawStr(25, 20, "__________");
 
@@ -200,7 +150,7 @@ void pos_view()
 		u8g.drawStr(17, 20, buf);
 
 		u8g.drawStr(2, 30, "Y->");
-		str_to_char_array(MOTOR_POS_SET, buf, COMMAND_LENGTH);
+		str_to_char_array(MOTOR_POS_SET, buf, SLAVE_COMMAND_LENGTH);
 		u8g.drawStr(25, 30, buf);
 		u8g.drawStr(25, 30, "__________");
 
@@ -218,7 +168,7 @@ void pos_view()
 		u8g.drawStr(17, 30, buf);
 
 		u8g.drawStr(2, 40, "Z->");
-		str_to_char_array(MOTOR_POS_SET, buf, COMMAND_LENGTH);
+		str_to_char_array(MOTOR_POS_SET, buf, SLAVE_COMMAND_LENGTH);
 		u8g.drawStr(25, 40, buf);
 		u8g.drawStr(25, 40, "__________");
 	}

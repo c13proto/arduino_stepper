@@ -1,7 +1,3 @@
-// 
-// 
-// 
-
 #include "keypad.h"
 
 int PAD_1;int PAD_2; int PAD_3;int PAD_A;
