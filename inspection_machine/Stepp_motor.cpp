@@ -12,15 +12,16 @@ bool COMMAND_RECIEVE_FLAG;
 String SLAVE_COMMAND;
 void Stepp_motorClass::init()
 {
-	pinMode(PIN_ENABLE_XY, OUTPUT);
-	pinMode(PIN_ENABLE_Z, OUTPUT);
+	pinMode(PIN_ENABLE_XY, OUTPUT);//xyモタドラEnable
+	pinMode(PIN_ENABLE_Z, OUTPUT);//zモタドラEnable
 	DRIVER_XY_OFF;
 	DRIVER_Z_OFF;
-	pinMode(PIN_SLIDE_SW, INPUT_PULLUP);//xyモータのEnableを制御する
+	pinMode(PIN_XY_SW, INPUT_PULLUP);//このスイッチでxyモタドラのEnableを制御する
 	pinMode(PIN_LIMIT_X0, INPUT_PULLUP);//リミットスイッチ
 	pinMode(PIN_LIMIT_Y0, INPUT_PULLUP);//リミットスイッチ
 	pinMode(PIN_LIMIT_X1, INPUT_PULLUP);//リミットスイッチ
 	pinMode(PIN_LIMIT_Y1, INPUT_PULLUP);//リミットスイッチ
+	pinMode(PIN_BUZZER, OUTPUT);//ブザー
 
 	pinMode(PIN_DIR_X, OUTPUT);	
 	pinMode(PIN_DIR_Y, OUTPUT);
@@ -28,6 +29,7 @@ void Stepp_motorClass::init()
 	pinMode(PIN_STEP_X, OUTPUT);
 	pinMode(PIN_STEP_Y, OUTPUT);
 	pinMode(PIN_STEP_Z, OUTPUT);
+
 
 	MOTOR_X = AccelStepper(AccelStepper::DRIVER, PIN_STEP_X, PIN_DIR_X);
 	MOTOR_Y = AccelStepper(AccelStepper::DRIVER, PIN_STEP_Y, PIN_DIR_Y);
@@ -195,6 +197,8 @@ void Stepp_motorClass::slave_ctrl()
 			Y_slave_ctrl(SLAVE_COMMAND);
 		}
 		Z_slave_ctrl(SLAVE_COMMAND);
+
+		COMMAND_RECIEVE_FLAG = false;//コマンド受信フラグクリア
 	}
 	motors_run();
 }
@@ -337,13 +341,13 @@ void Stepp_motorClass::limit_ctrl()
 
 	//1loopでの2度めの呼び出しは無視されるらしいので，手動のリミットは効かない
 	if (!x0)
-		if (MOTOR_X.distanceToGo()<0)MOTOR_X.stop();
+		if (MOTOR_X.distanceToGo()<0)MOTOR_X.stop();//MOTOR_X.move(500);//戻さずに止めるだけにしとく．どっちでもよい
 	if (!x1)
-		if (MOTOR_X.distanceToGo()>0)MOTOR_X.stop();
+		if (MOTOR_X.distanceToGo()>0)MOTOR_X.stop();//MOTOR_X.move(-500);
 	if (!y0)
-		if (MOTOR_Y.distanceToGo()<0)MOTOR_Y.stop();
+		if (MOTOR_Y.distanceToGo()<0)MOTOR_Y.stop();//MOTOR_Y.move(500);
 	if (!y1)
-		if (MOTOR_Y.distanceToGo()>0)MOTOR_Y.stop();
+		if (MOTOR_Y.distanceToGo()>0)MOTOR_Y.stop();//MOTOR_Y.move(-500);
 
 	x0_old = x0;
 	y0_old = y0;

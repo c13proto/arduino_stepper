@@ -11,11 +11,11 @@
 #include <MultiStepper.h>
 #include <AccelStepper.h>
 //モタドラシールドのPIN配置
-#define PIN_STEP_A		12//SpnEn
 #define PIN_DIR_A		13//SpnDr
+#define PIN_BUZZER		12//本来はSTEP_A or SpnEn
 #define PIN_LIMIT_X1	11//PB5 本来はLIMIT_Z
-#define PIN_LIMIT_Y0	10//PB4
-#define PIN_LIMIT_X0	9//PH6
+#define PIN_LIMIT_Y0	10//y低い側リミット(timerに使用しているためpwm出力不可)　PB4
+#define PIN_LIMIT_X0	9//x低い側リミット(timerに使用しているためpwm出力不可)　PH6
 #define PIN_ENABLE_XY	8//これをLOWにしないとモタドラ駆動しない PH5
 #define PIN_DIR_Z		7
 #define PIN_DIR_Y		6	
@@ -23,7 +23,7 @@
 #define PIN_STEP_Z		4
 #define PIN_STEP_Y		3
 #define PIN_STEP_X		2
-#define PIN_SLIDE_SW	A0//本来はAbort PF0
+#define PIN_XY_SW		A0//本来はAbort PF0
 #define PIN_LIMIT_Y1 	A1//本来はHold PF1
 #define PIN_ENABLE_Z	A3//本来はCoolantEnable PF3
 

@@ -89,8 +89,30 @@ void loop()//デバッグ系の処理をこっちに(重いから)
 		str_to_char_array(SLAVE_COMMAND, buf, SLAVE_COMMAND_LENGTH);
 		u8g.drawStr(40, 50, buf);
 
+		limit_view();//LIMIT
+
+
 	} while (u8g.nextPage());
 
+}
+void limit_view()
+{
+	String str = "";
+	if (!LIMIT_X0)str += "X- ";
+	if (!LIMIT_X1)str += "X+ ";
+	if (!LIMIT_Y0)str += "Y- ";
+	if (!LIMIT_Y1)str += "Y+ ";
+
+	if (str.length() != 0) 
+	{
+		char buf[30];
+		str = "LIMIT:" + str;
+		str_to_char_array(str, buf, 30);
+		u8g.drawStr(2, 60, buf);
+
+		analogWrite(PIN_BUZZER, 50);//ブザー tone関数を使うとdurationぶん繰り返されて制御性なくなる
+	}
+	else analogWrite(PIN_BUZZER, 0);
 }
 void driver_state_view()
 {//駆動中のモータに*を表示
