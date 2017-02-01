@@ -40,7 +40,7 @@ void Stepp_motorClass::init()
 	MOTOR_POS_SET = "";
 	DRIVER_STATE = STATE_OFF_OFF;//ドライバを有効にしてるかどうか．z xy= 0:off off 1:on off 2:on on
 	COMMAND_RECIEVE_FLAG = false;
-	SLAVE_COMMAND="no command";
+	SLAVE_COMMAND="ready!";
 
 	MOTOR_X.setMaxSpeed(1000);//[puls/sec] accelstepperでは1000は超えない設計をしているらしい(正の数を代入)
 	MOTOR_Y.setMaxSpeed(1000);//1000以上の数を入れると変な動作するときあり

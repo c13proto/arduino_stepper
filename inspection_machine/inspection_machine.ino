@@ -75,19 +75,19 @@ void loop()//デバッグ系の処理をこっちに(重いから)
 		
 		//PCデバッグ(どうやらシリアル受信に影響するっぽいからあんまやらないほうがいいかも)
 		//Keypad.serial_debug();
-		char buf[SLAVE_COMMAND_LENGTH];
+		char buff[SLAVE_COMMAND_LENGTH];
 		
 		mode_view();//MODE表示			
 		pos_view();//pos表示	
 		driver_state_view();//モタドラ駆動してるかどうか
 
 		//AD表示
-		sprintf(buf, "%d", AD4);
-		u8g.drawStr(2, 50, buf);
+		sprintf(buff, "%d", AD4);
+		u8g.drawStr(2, 50, buff);
 
 		//COMMAND
-		str_to_char_array(SLAVE_COMMAND, buf, SLAVE_COMMAND_LENGTH);
-		u8g.drawStr(40, 50, buf);
+		str_to_char_array(SLAVE_COMMAND, buff, SLAVE_COMMAND_LENGTH);
+		u8g.drawStr(40, 50, buff);
 
 		limit_view();//LIMIT
 
@@ -105,10 +105,10 @@ void limit_view()
 
 	if (str.length() != 0) 
 	{
-		char buf[30];
+		char buff[30] = { '/0' };
 		str = "LIMIT:" + str;
-		str_to_char_array(str, buf, 30);
-		u8g.drawStr(2, 60, buf);
+		str_to_char_array(str, buff, 30);
+		u8g.drawStr(2, 60, buff);
 
 		analogWrite(PIN_BUZZER, 50);//ブザー tone関数を使うとdurationぶん繰り返されて制御性なくなる
 	}
@@ -138,60 +138,60 @@ void mode_view()
 }
 void pos_view()
 {
-	char buf[SLAVE_COMMAND_LENGTH];
+	char buff[SLAVE_COMMAND_LENGTH];
 	if (SET_POS_MODE == 0)
 	{
-		sprintf(buf, "%ld", MOTOR_X.currentPosition());
+		sprintf(buff, "%ld", MOTOR_X.currentPosition());
 		u8g.drawStr(2, 20, "X:");
-		u8g.drawStr(17, 20, buf);
-		sprintf(buf, "%ld", MOTOR_Y.currentPosition());
+		u8g.drawStr(17, 20, buff);
+		sprintf(buff, "%ld", MOTOR_Y.currentPosition());
 		u8g.drawStr(2, 30, "Y:");
-		u8g.drawStr(17, 30, buf);
-		sprintf(buf, "%ld", MOTOR_Z.currentPosition());
+		u8g.drawStr(17, 30, buff);
+		sprintf(buff, "%ld", MOTOR_Z.currentPosition());
 		u8g.drawStr(2, 40, "Z:");
-		u8g.drawStr(17, 40, buf);
+		u8g.drawStr(17, 40, buff);
 	}
 	else if (SET_POS_MODE == MODE_X)
 	{
 		u8g.drawStr(2, 20, "X->");
-		str_to_char_array(MOTOR_POS_SET, buf, SLAVE_COMMAND_LENGTH);
-		u8g.drawStr(25, 20, buf);
+		str_to_char_array(MOTOR_POS_SET, buff, SLAVE_COMMAND_LENGTH);
+		u8g.drawStr(25, 20, buff);
 		u8g.drawStr(25, 20, "__________");
 
-		sprintf(buf, "%ld", MOTOR_Y.currentPosition());
+		sprintf(buff, "%ld", MOTOR_Y.currentPosition());
 		u8g.drawStr(2, 30, "Y:");
-		u8g.drawStr(17, 30, buf);
-		sprintf(buf, "%ld", MOTOR_Z.currentPosition());
+		u8g.drawStr(17, 30, buff);
+		sprintf(buff, "%ld", MOTOR_Z.currentPosition());
 		u8g.drawStr(2, 40, "Z:");
-		u8g.drawStr(17, 40, buf);
+		u8g.drawStr(17, 40, buff);
 	}
 	else if (SET_POS_MODE == MODE_Y)
 	{
-		sprintf(buf, "%ld", MOTOR_X.currentPosition());
+		sprintf(buff, "%ld", MOTOR_X.currentPosition());
 		u8g.drawStr(2, 20, "X:");
-		u8g.drawStr(17, 20, buf);
+		u8g.drawStr(17, 20, buff);
 
 		u8g.drawStr(2, 30, "Y->");
-		str_to_char_array(MOTOR_POS_SET, buf, SLAVE_COMMAND_LENGTH);
-		u8g.drawStr(25, 30, buf);
+		str_to_char_array(MOTOR_POS_SET, buff, SLAVE_COMMAND_LENGTH);
+		u8g.drawStr(25, 30, buff);
 		u8g.drawStr(25, 30, "__________");
 
-		sprintf(buf, "%ld", MOTOR_Z.currentPosition());
+		sprintf(buff, "%ld", MOTOR_Z.currentPosition());
 		u8g.drawStr(2, 40, "Z:");
-		u8g.drawStr(17, 40, buf);
+		u8g.drawStr(17, 40, buff);
 	}
 	else if (SET_POS_MODE == MODE_Z)
 	{
-		sprintf(buf, "%ld", MOTOR_X.currentPosition());
+		sprintf(buff, "%ld", MOTOR_X.currentPosition());
 		u8g.drawStr(2, 20, "X:");
-		u8g.drawStr(17, 20, buf);
-		sprintf(buf, "%ld", MOTOR_Y.currentPosition());
+		u8g.drawStr(17, 20, buff);
+		sprintf(buff, "%ld", MOTOR_Y.currentPosition());
 		u8g.drawStr(2, 30, "Y:");
-		u8g.drawStr(17, 30, buf);
+		u8g.drawStr(17, 30, buff);
 
 		u8g.drawStr(2, 40, "Z->");
-		str_to_char_array(MOTOR_POS_SET, buf, SLAVE_COMMAND_LENGTH);
-		u8g.drawStr(25, 40, buf);
+		str_to_char_array(MOTOR_POS_SET, buff, SLAVE_COMMAND_LENGTH);
+		u8g.drawStr(25, 40, buff);
 		u8g.drawStr(25, 40, "__________");
 	}
 }
@@ -199,6 +199,7 @@ void str_to_char_array(String str, char *s,int array_length)
 {
 	int i = 0;
 	for (i = 0; i < array_length; i++)s[i] = ' ';//キャラ配列のクリア
+	s[array_length] = '\0';//初期状態で末端文字以外のものが入っている場合があったので手動で格納
 	for (i = 0; i < array_length; i++)
 		if (str[i] != '\0')s[i] = str[i]; else break;
 }
