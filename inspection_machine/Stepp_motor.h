@@ -27,6 +27,7 @@
 #define PIN_LIMIT_Y1 	A1//本来はHold PF1
 #define PIN_ENABLE_Z	A3//本来はCoolantEnable PF3
 
+//Output-High/Output-Low/Read High or Low
 #define DRIVER_XY_ON	cbi(PORTH,5)//
 #define DRIVER_XY_OFF	sbi(PORTH,5)//
 #define DRIVER_Z_ON		cbi(PORTF,3)//
@@ -58,6 +59,12 @@ extern int		DRIVER_STATE;//
 extern bool COMMAND_RECIEVE_FLAG;
 extern String SLAVE_COMMAND;
 #define SLAVE_COMMAND_LENGTH 10
+
+//パルス⇔物理単位　換算
+#define DEG_TO_PULSE(DEG)		(long)((double)DEG*17.7777778)//=deg*6400/360
+#define PULSE_TO_DEG(PULSE)		(double)PULSE*0.05625//pulse*360.0/6400.0;
+#define mm_TO_PULSE(mm)			(long)((double)mm*400.0)// mm*1600.0/4.0
+#define PULSE_TO_mm(PULSE)		(double)PULSE*0.0025//pulse*4.0 / 1600.0(1600=200[pulse/1回転]*8[分周])
 
 class Stepp_motorClass
 {

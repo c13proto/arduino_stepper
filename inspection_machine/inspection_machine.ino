@@ -15,9 +15,9 @@ void timer_interrupt() {//ƒƒCƒ“‚Ì‘€ìŒn‚Ìˆ—‚±‚Á‚¿
 }
 void mode_update()
 {
-	if (PAD_D == PRESSED)CTRL_MODE++;
+	if (PAD_D == PRESSED && SET_POS_MODE == NONE)CTRL_MODE++;
 	if (CTRL_MODE > MODE_SLAVE)CTRL_MODE = MODE_SLEEP;
-
+	
 	if (CTRL_MODE == MODE_SLEEP) 
 	{
 		DRIVER_Z_OFF;
@@ -138,61 +138,73 @@ void mode_view()
 }
 void pos_view()
 {
-	char buff[SLAVE_COMMAND_LENGTH];
+	char buff[7];
+	double pos_x = PULSE_TO_mm(MOTOR_X.currentPosition());
+	double pos_y = PULSE_TO_mm(MOTOR_Y.currentPosition());
+	double pos_z = PULSE_TO_DEG(MOTOR_Z.currentPosition());
+
+	//’PˆÊ•\Ž¦
+	u8g.drawStr(90, 20, "mm");//x
+	u8g.drawStr(90, 30, "mm");//y
+	u8g.drawStr(85, 40, "deg");//z
+
 	if (SET_POS_MODE == 0)
 	{
-		sprintf(buff, "%ld", MOTOR_X.currentPosition());
+		//sprintf(buff, "%ld", MOTOR_X.currentPosition());
+		dtostrf(pos_x, 7, 2, buff);
 		u8g.drawStr(2, 20, "X:");
 		u8g.drawStr(17, 20, buff);
-		sprintf(buff, "%ld", MOTOR_Y.currentPosition());
+		//sprintf(buff, "%ld", MOTOR_Y.currentPosition());
+		dtostrf(pos_y, 7, 2, buff);
 		u8g.drawStr(2, 30, "Y:");
 		u8g.drawStr(17, 30, buff);
-		sprintf(buff, "%ld", MOTOR_Z.currentPosition());
+		//sprintf(buff, "%1f", pos_z);
+		dtostrf(pos_z, 7, 2, buff);
 		u8g.drawStr(2, 40, "Z:");
 		u8g.drawStr(17, 40, buff);
 	}
 	else if (SET_POS_MODE == MODE_X)
 	{
 		u8g.drawStr(2, 20, "X->");
-		str_to_char_array(MOTOR_POS_SET, buff, SLAVE_COMMAND_LENGTH);
+		str_to_char_array(MOTOR_POS_SET, buff, 7);
 		u8g.drawStr(25, 20, buff);
-		u8g.drawStr(25, 20, "__________");
+		u8g.drawStr(25, 20, "_______");
 
-		sprintf(buff, "%ld", MOTOR_Y.currentPosition());
+		dtostrf(pos_y, 7, 2, buff);
 		u8g.drawStr(2, 30, "Y:");
 		u8g.drawStr(17, 30, buff);
-		sprintf(buff, "%ld", MOTOR_Z.currentPosition());
+		dtostrf(pos_z, 7, 2, buff);
 		u8g.drawStr(2, 40, "Z:");
 		u8g.drawStr(17, 40, buff);
 	}
 	else if (SET_POS_MODE == MODE_Y)
 	{
-		sprintf(buff, "%ld", MOTOR_X.currentPosition());
+		dtostrf(pos_x, 7, 2, buff);
 		u8g.drawStr(2, 20, "X:");
 		u8g.drawStr(17, 20, buff);
 
 		u8g.drawStr(2, 30, "Y->");
-		str_to_char_array(MOTOR_POS_SET, buff, SLAVE_COMMAND_LENGTH);
+		str_to_char_array(MOTOR_POS_SET, buff, 7);
 		u8g.drawStr(25, 30, buff);
-		u8g.drawStr(25, 30, "__________");
+		u8g.drawStr(25, 30, "_______");
 
-		sprintf(buff, "%ld", MOTOR_Z.currentPosition());
+		dtostrf(pos_z, 7, 2, buff);
 		u8g.drawStr(2, 40, "Z:");
 		u8g.drawStr(17, 40, buff);
 	}
 	else if (SET_POS_MODE == MODE_Z)
 	{
-		sprintf(buff, "%ld", MOTOR_X.currentPosition());
+		dtostrf(pos_x, 7, 2, buff);
 		u8g.drawStr(2, 20, "X:");
 		u8g.drawStr(17, 20, buff);
-		sprintf(buff, "%ld", MOTOR_Y.currentPosition());
+		dtostrf(pos_y, 7, 2, buff);
 		u8g.drawStr(2, 30, "Y:");
 		u8g.drawStr(17, 30, buff);
 
 		u8g.drawStr(2, 40, "Z->");
-		str_to_char_array(MOTOR_POS_SET, buff, SLAVE_COMMAND_LENGTH);
+		str_to_char_array(MOTOR_POS_SET, buff, 6);
 		u8g.drawStr(25, 40, buff);
-		u8g.drawStr(25, 40, "__________");
+		u8g.drawStr(25, 40, "_______");
 	}
 }
 void str_to_char_array(String str, char *s,int array_length)

@@ -95,15 +95,14 @@ void Stepp_motorClass::X_master_input_ctrl()
 		SET_POS_MODE = MODE_X;
 	else if (SET_POS_MODE == MODE_X)
 	{
-		if (PRESSED_KEY >= '0'&& PRESSED_KEY <= '9')
-			MOTOR_POS_SET += PRESSED_KEY;//数字の入力
-		else if (PRESSED_KEY == '*')//+-の入力
+		if (PRESSED_KEY >= '0'&& PRESSED_KEY <= '9')MOTOR_POS_SET += PRESSED_KEY;//数字の入力
+		else if (PRESSED_KEY == '*')MOTOR_POS_SET += '.';//小数点の入力
+		else if (PRESSED_KEY == '#')//+-の入力
 		{
-			if (MOTOR_POS_SET.startsWith("-"))
-				MOTOR_POS_SET.replace("-", "");
+			if (MOTOR_POS_SET.startsWith("-"))MOTOR_POS_SET.replace("-", "");
 			else MOTOR_POS_SET = "-" + MOTOR_POS_SET;
 		}
-		else if (PRESSED_KEY == '#' && MOTOR_POS_SET.length() > 0)
+		else if (PRESSED_KEY == 'D' && MOTOR_POS_SET.length() > 0)
 			MOTOR_POS_SET.remove(MOTOR_POS_SET.length() - 1);//文字訂正
 		else if (PRESSED_KEY == 'A')
 		{
@@ -112,11 +111,11 @@ void Stepp_motorClass::X_master_input_ctrl()
 				if (MOTOR_POS_SET.length() != 0)//空文字じゃなければ
 				{
 					if (MOTOR_POS_SET.equals("000"))MOTOR_X.setCurrentPosition(0);//000のときのみ現在位置を0にする
-					else MOTOR_X.moveTo(MOTOR_POS_SET.toInt());
+					else MOTOR_X.moveTo(mm_TO_PULSE(MOTOR_POS_SET.toDouble()));
 				}
 				else MOTOR_X.stop();//空文字なら動かないor止める
 			}
-			SET_POS_MODE = 0;
+			SET_POS_MODE = NONE;
 			MOTOR_POS_SET = "";
 		}
 	}
@@ -127,15 +126,14 @@ void Stepp_motorClass::Y_master_input_ctrl()
 		SET_POS_MODE = MODE_Y;
 	else if (SET_POS_MODE == MODE_Y)
 	{
-		if (PRESSED_KEY >= '0'&& PRESSED_KEY <= '9')
-			MOTOR_POS_SET += PRESSED_KEY;//数字の入力
-		else if (PRESSED_KEY == '*')//+-の入力
+		if (PRESSED_KEY >= '0'&& PRESSED_KEY <= '9')MOTOR_POS_SET += PRESSED_KEY;//数字の入力
+		else if (PRESSED_KEY == '*')MOTOR_POS_SET += '.';
+		else if (PRESSED_KEY == '#')//+-の入力
 		{
-			if (MOTOR_POS_SET.startsWith("-"))
-				MOTOR_POS_SET.replace("-", "");
+			if (MOTOR_POS_SET.startsWith("-"))MOTOR_POS_SET.replace("-", "");
 			else MOTOR_POS_SET = "-" + MOTOR_POS_SET;
 		}
-		else if (PRESSED_KEY == '#' && MOTOR_POS_SET.length() > 0)
+		else if (PRESSED_KEY == 'D' && MOTOR_POS_SET.length() > 0)
 			MOTOR_POS_SET.remove(MOTOR_POS_SET.length() - 1);//文字訂正
 		else if (PRESSED_KEY == 'B')
 		{
@@ -144,11 +142,11 @@ void Stepp_motorClass::Y_master_input_ctrl()
 				if (MOTOR_POS_SET.length() != 0)//空文字じゃなければ
 				{
 					if (MOTOR_POS_SET.equals("000"))MOTOR_Y.setCurrentPosition(0);//000のときのみ現在位置を0にする
-					else MOTOR_Y.moveTo(MOTOR_POS_SET.toInt());
+					else MOTOR_Y.moveTo(mm_TO_PULSE(MOTOR_POS_SET.toDouble()));
 				}
 				else MOTOR_Y.stop();//空文字なら動かない
 			}
-			SET_POS_MODE = 0;
+			SET_POS_MODE = NONE;
 			MOTOR_POS_SET = "";
 		}
 	}
@@ -159,15 +157,14 @@ void Stepp_motorClass::Z_master_input_ctrl()
 		SET_POS_MODE = MODE_Z;
 	else if (SET_POS_MODE == MODE_Z)
 	{	
-		if (PRESSED_KEY >= '0'&& PRESSED_KEY <= '9')
-			MOTOR_POS_SET += PRESSED_KEY;//数字の入力
-		else if (PRESSED_KEY == '*')//+-の入力
+		if (PRESSED_KEY >= '0'&& PRESSED_KEY <= '9')MOTOR_POS_SET += PRESSED_KEY;//数字の入力
+		else if (PRESSED_KEY == '*')MOTOR_POS_SET += '.';
+		else if (PRESSED_KEY == '#')//+-の入力
 		{
-			if (MOTOR_POS_SET.startsWith("-"))
-				MOTOR_POS_SET.replace("-","");
+			if (MOTOR_POS_SET.startsWith("-"))MOTOR_POS_SET.replace("-","");
 			else MOTOR_POS_SET= "-"+MOTOR_POS_SET;
 		}
-		else if (PRESSED_KEY=='#' && MOTOR_POS_SET.length() > 0)
+		else if (PRESSED_KEY=='D' && MOTOR_POS_SET.length() > 0)
 			MOTOR_POS_SET.remove(MOTOR_POS_SET.length()-1);//文字訂正
 		else if (PRESSED_KEY=='C')
 		{
@@ -176,11 +173,11 @@ void Stepp_motorClass::Z_master_input_ctrl()
 				if (MOTOR_POS_SET.length() != 0)//空文字じゃなければ
 				{
 					if(MOTOR_POS_SET.equals("000"))MOTOR_Z.setCurrentPosition(0);//000のときのみ現在位置を0にする
-					else MOTOR_Z.moveTo(MOTOR_POS_SET.toInt());
+					else MOTOR_Z.moveTo(DEG_TO_PULSE(MOTOR_POS_SET.toDouble()));
 				}
 				else MOTOR_Z.stop();//空文字なら動かない
 			}
-			SET_POS_MODE = 0;
+			SET_POS_MODE = NONE;
 			MOTOR_POS_SET = "";
 		}
 	}
@@ -208,13 +205,13 @@ void Stepp_motorClass::X_slave_ctrl(String command)
 	{
 		String val = command;
 		val.replace("Vx", "");
-		if (isFloat(val))MOTOR_X.setMaxSpeed(val.toInt());//速度変更
+		if (isFloat(val))MOTOR_X.setMaxSpeed(mm_TO_PULSE(val.toDouble()));//速度変更
 	}
 	if (command.startsWith("X"))
 	{
 		String val = command;
 		val.replace("X", "");
-		if (isFloat(val))MOTOR_X.moveTo(val.toInt());//目標位置の指定．MOTOR_X.run()で動く
+		if (isFloat(val))MOTOR_X.moveTo(mm_TO_PULSE(val.toDouble()));//目標位置の指定．MOTOR_X.run()で動く
 	}
 	if (command.equals("CLEAR_X"))MOTOR_X.setCurrentPosition(0);//現在位置を0にすると同時に止まる(ライブラリの仕様上)
 	if (command.equals("STOP_X") || command.equals("STOP"))MOTOR_X.stop();//止まる位置に目標座標を変更
@@ -227,13 +224,13 @@ void Stepp_motorClass::Y_slave_ctrl(String command)
 	{
 		String val = command;
 		val.replace("Vy", "");
-		if (isFloat(val)) MOTOR_Y.setMaxSpeed(val.toInt());
+		if (isFloat(val)) MOTOR_Y.setMaxSpeed(mm_TO_PULSE(val.toDouble()));
 	}
 	if (command.startsWith("Y"))
 	{
 		String val = command;
 		val.replace("Y", "");
-		if (isFloat(val)) MOTOR_Y.moveTo(val.toInt());
+		if (isFloat(val)) MOTOR_Y.moveTo(mm_TO_PULSE(val.toDouble()));
 	}
 	if (command.equals("CLEAR_Y"))MOTOR_Y.setCurrentPosition(0);
 	if (command.equals("STOP_Y") || command.equals("STOP"))MOTOR_Y.stop();
@@ -243,16 +240,16 @@ void Stepp_motorClass::Y_slave_ctrl(String command)
 void Stepp_motorClass::Z_slave_ctrl(String command)
 {
 	if (command.startsWith("Vz"))
-	{
+	{//[deg/sec]だが，1000[pulse/sec]以上には出来ない
 		String val = command;
 		val.replace("Vz", "");
-		if (isFloat(val)) MOTOR_Z.setMaxSpeed(val.toInt());
+		if (isFloat(val)) MOTOR_Z.setMaxSpeed(DEG_TO_PULSE(val.toDouble()));
 	}
 	if (command.startsWith("Z"))
 	{
 		String val = command;
 		val.replace("Z", "");
-		if (isFloat(val)) MOTOR_Z.moveTo(val.toInt());
+		if (isFloat(val)) MOTOR_Z.moveTo(DEG_TO_PULSE(val.toDouble()));
 	}
 	if(command.equals("CLEAR_Z"))MOTOR_Z.setCurrentPosition(0);
 	if (command.equals("STOP_Z") || command.equals("STOP"))MOTOR_Z.stop();
@@ -291,8 +288,7 @@ void Stepp_motorClass::mode_changed_ctrl()
 	static char mode_old;
 	if (mode_old != CTRL_MODE)
 	{
-		Stepp_motor.motors_stop();//モータのポジション保持しない
-		SET_POS_MODE = NONE;//ポジションを設定していた場合はクリア
+		Stepp_motor.motors_stop();//モータのポジション保持しない		
 		while (Serial.read() != -1);//モード変更時はシリアルのバッファクリア
 		SLAVE_COMMAND = "no command";//コマンドをクリア
 	}
@@ -353,5 +349,6 @@ void Stepp_motorClass::limit_ctrl()
 	y0_old = y0;
 
 }
+
 Stepp_motorClass Stepp_motor;
 
