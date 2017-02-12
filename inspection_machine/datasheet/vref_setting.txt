@@ -1,0 +1,11 @@
+[Z]
+0.33A phase(specification of motor)
+Current Limit =0.33*0.7=0.231[A](1/32 step = 70%)
+Vref=Current Limit/2=0.1655[V]
+
+[XY]
+* Max current of DRV8825 is 2.5A
+2.4A phase(motor's spec is 2.6A)
+2.4*0.7=1.68[A](more current acceptable because current devide setting is 1/2 but need to be careful to heat)
+Vref=0.84[V]
+
