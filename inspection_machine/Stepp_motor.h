@@ -63,8 +63,8 @@ extern String SLAVE_COMMAND;
 //パルス⇔物理単位　換算
 #define DEG_TO_PULSE(DEG)		(long)((double)DEG*17.7777778)//=deg*6400/360
 #define PULSE_TO_DEG(PULSE)		(double)PULSE*0.05625//pulse*360.0/6400.0;
-#define mm_TO_PULSE(mm)			(long)((double)mm*400.0)// mm*1600.0/4.0
-#define PULSE_TO_mm(PULSE)		(double)PULSE*0.0025//pulse*4.0 / 1600.0(1600=200[pulse/1回転]*8[分周])
+#define mm_TO_PULSE(mm)			(long)((double)mm*100.0)// mm*400.0(=200[pulse/1回転]*2[分周])/4.0(=1回転あたりの進む距離[mm])
+#define PULSE_TO_mm(PULSE)		(double)PULSE*0.01//pulse*4.0 / 400.0
 
 class Stepp_motorClass
 {
